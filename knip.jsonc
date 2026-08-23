@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "next": {
+    "entry": [
+      "src/app/{layout,page,manifest,robots,sitemap}.tsx!",
+      "src/app/{manifest,robots,sitemap}.ts!",
+    ],
+  },
+  "playwright": {
+    "config": ["playwright.config.ts"],
+  },
+  "vitest": {
+    "config": ["vitest.config.ts"],
+  },
+}
