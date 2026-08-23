@@ -1,0 +1,26 @@
+.container {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 2rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.heroLink {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.socialLink {
+  color: #1976d2;
+  text-decoration: underline;
+  text-decoration-color: rgb(25 118 210 / 40%);
+}
+
+.heroLink:focus-visible,
+.socialLink:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 4px;
+}

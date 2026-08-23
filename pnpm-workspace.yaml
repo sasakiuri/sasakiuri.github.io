@@ -1,0 +1,14 @@
+packages:
+  - "."
+
+autoInstallPeers: true
+engineStrict: true
+saveExact: true
+strictPeerDependencies: true
+
+allowBuilds:
+  "@tailwindcss/oxide": true
+  esbuild: true
+  sharp: true
+  simple-git-hooks: true
+  unrs-resolver: true
