@@ -16,7 +16,7 @@ export function HomePage() {
         <ExternalLink className={styles.heroLink} href={hero.sourceUrl}>
           <Image
             alt={hero.image.alt}
-            className="my2 max-w-sm"
+            className="my2 h-auto max-w-sm"
             height={hero.image.height}
             preload
             src={hero.image.src}
