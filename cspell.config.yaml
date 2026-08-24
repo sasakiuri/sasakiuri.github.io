@@ -34,6 +34,7 @@ words:
   - esbuild
   - fontsource
   - GHSA
+  - ghsas
   - irasutoya
   - httpsx
   - IgnoredVulns
