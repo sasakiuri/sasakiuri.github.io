@@ -31,6 +31,7 @@
     "test:e2e:update": "playwright test --project=chromium --update-snapshots",
     "test:e2e:webkit": "playwright test --project=webkit",
     "test:lighthouse": "run-s build lighthouse",
+    "test:mutation": "node scripts/run-mutation.mjs",
     "test:storybook": "vitest run --config vitest.storybook.config.ts",
     "test:storybook:watch": "vitest --config vitest.storybook.config.ts",
     "storybook": "storybook dev --port 6006 --no-open",
