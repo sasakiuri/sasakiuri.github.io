@@ -1,0 +1,18 @@
+{
+  "name": "@sasakiuri/mutation-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TypeScript 5 compatibility island for mutation testing",
+  "type": "module",
+  "devDependencies": {
+    "@stryker-mutator/api": "10.0.0",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25",
+    "pnpm": ">=11.22.0"
+  }
+}
