@@ -12,7 +12,7 @@ export default defineConfig({
   },
   test: {
     coverage: {
-      exclude: ["src/**/*.test.{ts,tsx}"],
+      exclude: ["src/**/*.stories.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
       include: ["src/components/**/*.{ts,tsx}", "src/config/**/*.ts"],
       provider: "v8",
       reporter: ["text", "json-summary", "html"],
@@ -26,6 +26,7 @@ export default defineConfig({
     environment: "jsdom",
     exclude: [...configDefaults.exclude, "tests/e2e/**"],
     passWithNoTests: false,
+    reporters: process.env.CI ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }]] : ["default"],
     restoreMocks: true,
     setupFiles: ["./vitest.setup.ts"],
   },

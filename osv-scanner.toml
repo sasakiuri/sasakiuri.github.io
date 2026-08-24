@@ -1,0 +1,9 @@
+[[IgnoredVulns]]
+id = "GHSA-w3rx-r6r6-pgpr"
+ignoreUntil = 2026-09-30
+reason = "Dev-only Storybook image metadata parser; no patched npm release exists. Inputs are repository-owned assets."
+
+[[IgnoredVulns]]
+id = "GHSA-5p2g-fcmc-qvqq"
+ignoreUntil = 2026-09-30
+reason = "Dev-only Storybook image metadata parser; no patched npm release exists. Inputs are repository-owned assets."
