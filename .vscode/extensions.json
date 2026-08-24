@@ -3,6 +3,9 @@
     "bradlc.vscode-tailwindcss",
     "biomejs.biome",
     "esbenp.prettier-vscode",
-    "stylelint.vscode-stylelint"
+    "github.vscode-github-actions",
+    "streetsidesoftware.code-spell-checker",
+    "stylelint.vscode-stylelint",
+    "taichi.vscode-textlint"
   ]
 }

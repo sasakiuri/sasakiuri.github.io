@@ -1,13 +1,6 @@
 const config = {
   extends: ["stylelint-config-standard"],
-  ignoreFiles: [
-    ".next/**",
-    "coverage/**",
-    "node_modules/**",
-    "out/**",
-    "playwright-report/**",
-    "test-results/**",
-  ],
+  ignoreFiles: [".next/**", "coverage/**", "node_modules/**", "out/**", "playwright-report/**", "test-results/**"],
   rules: {
     "font-family-name-quotes": null,
     "import-notation": "string",

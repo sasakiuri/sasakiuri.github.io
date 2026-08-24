@@ -4,5 +4,17 @@ node_modules
 out
 playwright-report
 pnpm-lock.yaml
+reports
+storybook-static
+stryker
 test-results
 tests/e2e/__snapshots__
+
+# Verbatim legal text
+LICENSE
+**/LICENSE
+THIRD-PARTY-LICENSES.*
+
+# Tool-managed files
+.husky
+.vscode

@@ -1,0 +1,84 @@
+version: "0.2"
+language: en,ja
+useGitignore: true
+enableGlobDot: true
+ignorePaths:
+  - .git/**
+  - .next/**
+  - coverage/**
+  - "**/node_modules/**"
+  - out/**
+  - playwright-report/**
+  - pnpm-lock.yaml
+  - public/**/*.{ico,webp}
+  - reports/**
+  - src/app/fonts/**
+  - storybook-static/**
+  - stryker/**
+  - test-results/**
+  - tests/e2e/__snapshots__/**
+words:
+  - amannn
+  - anchore
+  - autodocs
+  - Biome
+  - bradlc
+  - commitlint
+  - cspell
+  - cyclonedx
+  - Dependabot
+  - depcruise
+  - dearu
+  - desumasu
+  - esbenp
+  - esbuild
+  - fontsource
+  - GHSA
+  - irasutoya
+  - httpsx
+  - IgnoredVulns
+  - jsdom
+  - joshi
+  - Kajigaya
+  - Kaku
+
+  - Knip
+  - Lighthouse
+  - Laravel
+  - lint-staged
+  - nkajigaya
+  - networkidle
+
+  - Noto
+  - noopener
+  - noreferrer
+  - Playwright
+  - postcss
+  - ossf
+  - rhysd
+  - rseidelsohn
+  - sasakiuri
+  - sarif
+  - sitemap
+  - Stryker
+  - Stylelint
+  - sudachi
+  - Tailwind
+  - taichi
+  - textlint
+  - textlintrc
+  - tsconfck
+  - Turbopack
+  - TypeScript
+  - Vitest
+  - vercel
+  - WebP
+  - WCAG
+  - Zod
+  - zizmor
+  - zricethezav
+  - unrs
+ignoreRegExpList:
+  - /#[0-9a-fA-F]{3,8}/
+  - /GHSA-[a-z0-9-]+/
+  - /[a-z0-9]{32,}/
