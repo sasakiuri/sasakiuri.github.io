@@ -1,8 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { siteConfig } from "@/config/site";
-
 import { HomePage } from "./home-page";
 
 describe("HomePage", () => {
@@ -12,40 +10,33 @@ describe("HomePage", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: siteConfig.pageHeading,
+        name: "ホームページ",
       }),
     ).toBeInTheDocument();
 
     const image = screen.getByRole("img", {
-      name: siteConfig.hero.image.alt,
+      name: "ハクビシン",
     });
 
-    expect(image).toHaveAttribute("src", siteConfig.hero.image.src);
-    expect(image).toHaveAttribute(
-      "height",
-      String(siteConfig.hero.image.height),
-    );
-    expect(image).toHaveAttribute("width", String(siteConfig.hero.image.width));
+    expect(image).toHaveAttribute("src", "/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp");
+    expect(image).toHaveAttribute("height", "337.438");
+    expect(image).toHaveAttribute("width", "384");
 
-    expect(
-      screen.getByText(siteConfig.hero.label, { selector: "ruby" }),
-    ).toHaveTextContent(
-      `${siteConfig.hero.label}（${siteConfig.hero.annotation}）`,
-    );
+    expect(screen.getByText("ハクビシン", { selector: "ruby" })).toHaveTextContent("ハクビシン（アライグマ）");
   });
 
   it("renders every configured social link securely", () => {
     render(<HomePage />);
 
     const list = screen.getByRole("list");
-    expect(within(list).getAllByRole("listitem")).toHaveLength(
-      siteConfig.socials.length,
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(list).getByRole("link", { name: "Twitter" })).toHaveAttribute(
+      "href",
+      "https://twitter.com/sasakiuri",
     );
-
-    for (const social of siteConfig.socials) {
-      expect(
-        within(list).getByRole("link", { name: social.label }),
-      ).toHaveAttribute("href", social.href);
-    }
+    expect(within(list).getByRole("link", { name: "Facebook" })).toHaveAttribute(
+      "href",
+      "https://www.facebook.com/nkajigaya1128",
+    );
   });
 });

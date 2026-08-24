@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Browser JavaScript (Brotli)",
+    "path": "out/_next/static/chunks/**/*.js",
+    "limit": "200 kB"
+  }
+]

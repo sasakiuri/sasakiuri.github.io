@@ -1,4 +1,34 @@
-export type HttpsUrl = `https://${string}`;
+import * as z from "zod";
+
+import { httpsUrlSchema, type HttpsUrl } from "./https-url-schema";
+
+export const siteConfigSchema = z.strictObject({
+  description: z.string().min(1),
+  hero: z.strictObject({
+    annotation: z.string().min(1),
+    image: z.strictObject({
+      alt: z.string().min(1),
+      height: z.number().positive(),
+      src: z.string().regex(/^\/(?!\/).+$/),
+      width: z.number().int().positive(),
+    }),
+    label: z.string().min(1),
+    sourceUrl: httpsUrlSchema,
+  }),
+  language: z.literal("ja"),
+  name: z.string().min(1),
+  pageHeading: z.string().min(1),
+  socials: z
+    .array(
+      z.strictObject({
+        href: httpsUrlSchema,
+        label: z.string().min(1),
+      }),
+    )
+    .min(1),
+  title: z.string().min(1),
+  url: httpsUrlSchema,
+});
 
 interface SocialLink {
   readonly href: HttpsUrl;
@@ -26,7 +56,7 @@ interface SiteConfig {
   readonly url: HttpsUrl;
 }
 
-export const siteConfig = {
+const rawSiteConfig = {
   description: "ホームページです。",
   hero: {
     annotation: "アライグマ",
@@ -55,3 +85,5 @@ export const siteConfig = {
   title: "梶ヶ谷 宜之 | ホームページ",
   url: "https://sasakiuri.github.io",
 } as const satisfies SiteConfig;
+
+export const siteConfig = siteConfigSchema.parse(rawSiteConfig) as SiteConfig;
