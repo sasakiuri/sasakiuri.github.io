@@ -1,11 +1,8 @@
 import type { ComponentPropsWithoutRef } from "react";
 
-import type { HttpsUrl } from "@/config/site";
+import type { HttpsUrl } from "@/config/https-url-schema";
 
-type ExternalLinkProps = Omit<
-  ComponentPropsWithoutRef<"a">,
-  "href" | "rel" | "target"
-> & {
+type ExternalLinkProps = Omit<ComponentPropsWithoutRef<"a">, "href" | "rel" | "target"> & {
   readonly href: HttpsUrl;
 };
 
