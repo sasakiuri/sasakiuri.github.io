@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/sasakiuri/sasakiuri.github.io/security/policy
+    about: 脆弱性は公開 Issue ではなく、セキュリティポリシーに従って報告してください。

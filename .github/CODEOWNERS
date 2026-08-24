@@ -1,0 +1,11 @@
+# Default reviewer
+* @sasakiuri
+
+# Security-sensitive automation and dependency policy
+/.github/ @sasakiuri
+/pnpm-lock.yaml @sasakiuri
+/pnpm-workspace.yaml @sasakiuri
+
+# Application and visual baselines
+/src/ @sasakiuri
+/tests/e2e/__snapshots__/ @sasakiuri

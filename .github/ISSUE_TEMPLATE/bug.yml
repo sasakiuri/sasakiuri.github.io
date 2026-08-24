@@ -1,0 +1,30 @@
+name: Bug report
+description: 不具合を報告します。
+body:
+  - type: textarea
+    attributes:
+      label: 現象
+      description: 現在の挙動と期待する挙動を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 再現手順
+      description: URL、ブラウザー、操作手順を記載してください。
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: 環境
+      options:
+        - Desktop Chromium
+        - Desktop Safari
+        - Mobile Safari
+        - Mobile Chromium
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 追加情報
+      description: 画面キャプチャ、ログ、修正案があれば添付してください。
