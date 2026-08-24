@@ -1,13 +1,14 @@
 # sasakiuri.github.io
 
 [![Verify and deploy](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/pipeline.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/pipeline.yml)
+[![Security](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/security.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml)
 
-梶ヶ谷宜之のホームページです。表示デザインを維持したまま、Next.js の App
-Router と静的エクスポートを使う構成にしています。
+梶ヶ谷宜之のホームページです。
 
 ## 必要な環境
 
-- Node.js 24.16.0（.node-version / .nvmrc）
+- Node.js 24.16.0（`.node-version` / `.nvmrc`）
 - pnpm 11.22.0
 
 ```sh
@@ -16,27 +17,35 @@ pnpm install
 pnpm dev
 ```
 
-http://localhost:3000 で確認できます。
+`http://localhost:3000` で確認できます。
 
 ## 主なコマンド
 
-| コマンド             | 用途                                           |
-| -------------------- | ---------------------------------------------- |
-| pnpm dev             | Turbopack 開発サーバー                         |
-| pnpm build           | out/ への静的エクスポート                      |
-| pnpm check           | 書式・Lint・型・単体テスト・未使用コードの検査 |
-| pnpm test:e2e        | ビルド、E2E、axe、画像差分テスト               |
-| pnpm test:e2e:update | 意図した変更後の画像差分ベースライン更新       |
-| pnpm validate        | ローカルで CI 相当の全検証                     |
+| コマンド               | 用途                                                            |
+| ---------------------- | --------------------------------------------------------------- |
+| `pnpm dev`             | Turbopack 開発サーバー                                          |
+| `pnpm build`           | `out/` への静的エクスポート                                     |
+| `pnpm check`           | 書式、文章、依存境界、型、単体テスト、ライセンスの検査          |
+| `pnpm test:storybook`  | Story の操作テストと実ブラウザーでのアクセシビリティ検査        |
+| `pnpm test:e2e`        | Chromium の機能、axe、画像差分、配信量、SEO の検査              |
+| `pnpm test:e2e:all`    | Chromium と WebKit の全ブラウザー検査                           |
+| `pnpm test:lighthouse` | 3 回の Lighthouse 計測と中央値の予算検査                        |
+| `pnpm test:mutation`   | Stryker によるセキュリティ境界の Mutation Testing               |
+| `pnpm storybook`       | コンポーネントカタログ                                          |
+| `pnpm license:report`  | 本番依存ライセンスの許可判定と JSON 出力                        |
+| `pnpm test:e2e:update` | 意図した変更後の画像差分ベースライン更新                        |
+| `pnpm validate`        | WebKit と Mutation Testing を除く、ローカルで自己完結する全検証 |
+
+WebKit は CI で常時実行します。ローカルで `pnpm test:e2e:all` を使う場合は、事前に
+`pnpm exec playwright install --with-deps chromium webkit` を実行してください。
 
 ## 構成
 
-- src/app: App Router、メタデータ、sitemap、robots、manifest
-- src/components: 表示コンポーネント
-- src/config/site.ts: 表示内容と外部 URL の唯一の定義元
-- tests/e2e: ブラウザー、アクセシビリティ、ビジュアル回帰テスト
-- .github/workflows/pipeline.yml: 品質検証から GitHub
-  Pages 配信までのパイプライン
+- `src/app`: App Router、メタデータ、sitemap、robots、manifest
+- `src/components`: 表示コンポーネントと Storybook Story
+- `src/config`: Zod で検証する表示内容と URL 境界
+- `tests/e2e`: ブラウザー、アクセシビリティ、SEO、性能、ビジュアル回帰テスト
+- `tools`: TypeScript 5.9 を必要とする解析ツールの隔離ワークスペース
+- `.github/workflows`: 品質、セキュリティ、SBOM、Mutation Testing、GitHub Pages 配信
 
-設計上の判断と、変更してはいけない表示仕様は
-[docs/architecture.md](docs/architecture.md) にまとめています。
+設計上の判断と変更してはいけない表示仕様は [architecture.md](docs/architecture.md) にまとめています。
