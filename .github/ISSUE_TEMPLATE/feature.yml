@@ -1,0 +1,19 @@
+name: Feature request
+description: 改善案を提案します。
+body:
+  - type: textarea
+    attributes:
+      label: 課題
+      description: 解決したい課題や利用場面を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 提案
+      description: 期待する挙動と、既存デザインへの影響を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 代替案
+      description: 検討した別の方法があれば記載してください。

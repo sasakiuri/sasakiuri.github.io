@@ -1,10 +1,30 @@
 packages:
   - "."
+  - "tools/*"
 
 autoInstallPeers: true
 engineStrict: true
 saveExact: true
 strictPeerDependencies: true
+
+# Storybook's config loader works with TypeScript 7, but its published peer range
+# has not caught up. Keep the exception scoped to the exact dependent.
+peerDependencyRules:
+  allowedVersions:
+    "tsconfck@3>typescript": "7"
+
+# These analysis tools load TypeScript without declaring it. Model the runtime
+# contract as a peer so each compatibility workspace's TypeScript 5 is used.
+packageExtensions:
+  "@stryker-mutator/core@10.0.0":
+    peerDependencies:
+      typescript: ">=2.0.0 <7.0.0"
+  "dependency-cruiser@18.2.0":
+    peerDependencies:
+      typescript: ">=2.0.0 <7.0.0"
+
+overrides:
+  "typed-rest-client>qs": "6.15.3"
 
 allowBuilds:
   "@tailwindcss/oxide": true

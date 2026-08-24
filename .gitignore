@@ -1,5 +1,5 @@
 # Dependencies and package-manager caches
-/node_modules/
+node_modules/
 /.pnpm-store/
 
 # Next.js and static export
@@ -11,6 +11,9 @@
 # Test output
 /coverage/
 /playwright-report/
+/reports/
+/storybook-static/
+/stryker/
 /test-results/
 
 # Environment files (keep intentional examples)

@@ -1,10 +1,22 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreDependencies": [
+    "@stryker-mutator/api",
+    "@stryker-mutator/core",
+    "@stryker-mutator/vitest-runner",
+    "@textlint-ja/textlint-rule-no-synonyms",
+    "license-checker-rseidelsohn",
+    "sudachi-synonyms-dictionary",
+    "textlint-rule-ja-no-redundant-expression",
+    "textlint-rule-no-doubled-joshi",
+    "textlint-rule-preset-ja-spacing",
+    "textlint-rule-preset-ja-technical-writing",
+    "textlint-rule-preset-japanese",
+    "vitest",
+  ],
+  "ignoreFiles": ["stryker.config.mjs"],
   "next": {
-    "entry": [
-      "src/app/{layout,page,manifest,robots,sitemap}.tsx!",
-      "src/app/{manifest,robots,sitemap}.ts!",
-    ],
+    "entry": ["src/app/{layout,page,manifest,robots,sitemap}.tsx!", "src/app/{manifest,robots,sitemap}.ts!"],
   },
   "playwright": {
     "config": ["playwright.config.ts"],
