@@ -19,7 +19,7 @@
     "lint:spell": "cspell lint --no-progress --show-suggestions .",
     "lint:styles": "stylelint \"src/**/*.css\"",
     "lint:styles:fix": "stylelint \"src/**/*.css\" --fix",
-    "lint:text": "textlint README.md CONTRIBUTING.md \"docs/**/*.md\"",
+    "lint:text": "textlint README.md CONTRIBUTING.md SECURITY.md \"docs/**/*.md\"",
     "typegen": "next typegen",
     "typecheck": "run-s typegen typecheck:compiler",
     "typecheck:compiler": "tsc --noEmit",
@@ -39,9 +39,12 @@
     "lighthouse": "node scripts/run-lighthouse.mjs",
     "size": "size-limit",
     "size:check": "run-s build size",
+    "license:check": "node scripts/check-licenses.mjs",
+    "license:report": "node scripts/check-licenses.mjs --report",
     "deps:check": "knip",
-    "check": "run-s format:check lint lint:styles lint:text lint:spell lint:architecture lint:cycles typecheck test:coverage deps:check",
-    "validate": "run-s check test:storybook test:e2e size:check test:lighthouse",
+    "deps:audit": "node scripts/audit-dependencies.mjs",
+    "check": "run-s format:check lint lint:styles lint:text lint:spell lint:architecture lint:cycles typecheck test:coverage deps:check license:check",
+    "validate": "run-s check test:storybook test:e2e size:check test:lighthouse deps:audit",
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
