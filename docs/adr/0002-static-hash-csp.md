@@ -26,3 +26,5 @@ violation と console error がないことを確認します。
 - Next.js の HTML 出力形式が変わると build は fail closed になります。
 - meta CSP で利用できない `frame-ancestors` などは残余リスクです。
 - Next.js の inline style を維持するため、style に限って `unsafe-inline` が残ります。
+- executable resource は artifact verifier が same-origin に限定し、HTTPS は配信基盤と合成監視で保証します。loopback
+  HTTP で同一 artifact を検証できるよう、`upgrade-insecure-requests` は meta policy に含めません。
