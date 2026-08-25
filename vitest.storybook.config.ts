@@ -5,6 +5,8 @@ import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
+const { CI } = process.env;
+
 export default defineConfig({
   plugins: [
     react(),
@@ -26,6 +28,6 @@ export default defineConfig({
       instances: [{ browser: "chromium" }],
       provider: playwright({}),
     },
-    reporters: process.env.CI ? ["default", ["junit", { outputFile: "reports/storybook-junit.xml" }]] : ["default"],
+    reporters: CI ? ["default", ["junit", { outputFile: "reports/storybook-junit.xml" }]] : ["default"],
   },
 });

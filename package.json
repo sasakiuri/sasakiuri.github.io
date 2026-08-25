@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/inject-service-worker-manifest.mjs",
     "analyze": "next experimental-analyze",
     "preview": "serve out --no-clipboard",
     "clean": "rimraf .next out coverage playwright-report reports storybook-static stryker test-results",
@@ -70,12 +70,13 @@
     "@textlint-ja/textlint-rule-no-synonyms": "1.3.0",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "@vitejs/plugin-react": "6.1.0",
     "@vitest/browser-playwright": "4.1.11",
     "@vitest/coverage-v8": "4.1.11",
     "babel-plugin-react-compiler": "1.0.0",
     "cspell": "10.1.0",
+    "fast-check": "4.9.0",
     "jsdom": "30.0.1",
     "knip": "6.32.2",
     "license-checker-rseidelsohn": "5.0.1",
@@ -87,8 +88,8 @@
     "prettier-plugin-tailwindcss": "0.8.1",
     "rimraf": "6.1.3",
     "serve": "14.2.6",
-    "size-limit": "13.0.3",
     "simple-git-hooks": "2.13.1",
+    "size-limit": "13.0.3",
     "storybook": "10.5.10",
     "stylelint": "17.14.1",
     "stylelint-config-standard": "40.0.0",
@@ -105,9 +106,9 @@
   },
   "engines": {
     "node": ">=24.15.0 <25",
-    "pnpm": ">=11.22.0"
+    "pnpm": ">=11.23.0"
   },
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af",
   "browserslist": {
     "production": [
       "> 0.5%",

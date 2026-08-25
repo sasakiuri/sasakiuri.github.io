@@ -114,6 +114,8 @@ function createStaticServer(rootDirectory) {
     [".ico", "image/x-icon"],
     [".js", "text/javascript; charset=utf-8"],
     [".json", "application/json; charset=utf-8"],
+    [".png", "image/png"],
+    [".svg", "image/svg+xml"],
     [".txt", "text/plain; charset=utf-8"],
     [".webmanifest", "application/manifest+json; charset=utf-8"],
     [".webp", "image/webp"],

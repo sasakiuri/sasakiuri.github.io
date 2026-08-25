@@ -1,60 +1,43 @@
 import * as z from "zod";
 
-import { httpsUrlSchema, type HttpsUrl } from "./https-url-schema";
+import { httpsUrlSchema } from "./https-url-schema";
 
-export const siteConfigSchema = z.strictObject({
-  description: z.string().min(1),
-  hero: z.strictObject({
-    annotation: z.string().min(1),
-    image: z.strictObject({
-      alt: z.string().min(1),
-      height: z.number().positive(),
-      src: z.string().regex(/^\/(?!\/).+$/),
-      width: z.number().int().positive(),
-    }),
-    label: z.string().min(1),
-    sourceUrl: httpsUrlSchema,
-  }),
-  language: z.literal("ja"),
-  name: z.string().min(1),
-  pageHeading: z.string().min(1),
-  socials: z
-    .array(
-      z.strictObject({
-        href: httpsUrlSchema,
-        label: z.string().min(1),
-      }),
-    )
-    .min(1),
-  title: z.string().min(1),
-  url: httpsUrlSchema,
-});
+const nonEmptyTextSchema = z.string().trim().min(1);
+const socialLinkSchema = z
+  .strictObject({
+    href: httpsUrlSchema,
+    label: nonEmptyTextSchema,
+  })
+  .readonly();
 
-interface SocialLink {
-  readonly href: HttpsUrl;
-  readonly label: string;
-}
+export const siteConfigSchema = z
+  .strictObject({
+    description: nonEmptyTextSchema,
+    hero: z
+      .strictObject({
+        annotation: nonEmptyTextSchema,
+        image: z
+          .strictObject({
+            alt: nonEmptyTextSchema,
+            height: z.number().positive(),
+            src: z.string().regex(/^\/(?!\/).+$/),
+            width: z.number().int().positive(),
+          })
+          .readonly(),
+        label: nonEmptyTextSchema,
+        sourceUrl: httpsUrlSchema,
+      })
+      .readonly(),
+    language: z.literal("ja"),
+    name: nonEmptyTextSchema,
+    pageHeading: nonEmptyTextSchema,
+    socials: z.array(socialLinkSchema).min(1).readonly(),
+    title: nonEmptyTextSchema,
+    url: httpsUrlSchema,
+  })
+  .readonly();
 
-interface SiteConfig {
-  readonly description: string;
-  readonly hero: {
-    readonly annotation: string;
-    readonly image: {
-      readonly alt: string;
-      readonly height: number;
-      readonly src: `/${string}`;
-      readonly width: number;
-    };
-    readonly label: string;
-    readonly sourceUrl: HttpsUrl;
-  };
-  readonly language: "ja";
-  readonly name: string;
-  readonly pageHeading: string;
-  readonly socials: readonly SocialLink[];
-  readonly title: string;
-  readonly url: HttpsUrl;
-}
+export type SiteConfig = z.output<typeof siteConfigSchema>;
 
 const rawSiteConfig = {
   description: "ホームページです。",
@@ -86,4 +69,4 @@ const rawSiteConfig = {
   url: "https://sasakiuri.github.io",
 } as const satisfies SiteConfig;
 
-export const siteConfig = siteConfigSchema.parse(rawSiteConfig) as SiteConfig;
+export const siteConfig: SiteConfig = siteConfigSchema.parse(rawSiteConfig);
