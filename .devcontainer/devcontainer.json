@@ -1,0 +1,42 @@
+{
+  "name": "sasakiuri.github.io",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:5.0.3-24-bookworm@sha256:d7e88ca9d7e48412c4f9afed316dac5a830e194c10bf0bea5912f524e14925dc",
+  "remoteUser": "node",
+  "containerEnv": {
+    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "forwardPorts": [3000, 6006],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js",
+      "onAutoForward": "notify"
+    },
+    "6006": {
+      "label": "Storybook",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "corepack pnpm install --frozen-lockfile",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "biomejs.biome",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "ms-playwright.playwright",
+        "streetsidesoftware.code-spell-checker",
+        "stylelint.vscode-stylelint",
+        "taichi.vscode-textlint"
+      ],
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  }
+}

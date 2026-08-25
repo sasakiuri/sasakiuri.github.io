@@ -3,9 +3,21 @@ packages:
   - "tools/*"
 
 autoInstallPeers: true
+blockExoticSubdeps: true
+disallowWorkspaceCycles: true
 engineStrict: true
+minimumReleaseAge: 1440
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
 saveExact: true
+strictDepBuilds: true
 strictPeerDependencies: true
+trustLockfile: false
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 525600
+update:
+  githubActions: true
+verifyDepsBeforeRun: error
 
 # Storybook's config loader works with TypeScript 7, but its published peer range
 # has not caught up. Keep the exception scoped to the exact dependent.

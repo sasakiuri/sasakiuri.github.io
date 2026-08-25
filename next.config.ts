@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
+  generateBuildId: async () => "static-export",
   images: {
     unoptimized: true,
   },

@@ -9,19 +9,21 @@ import path from "node:path";
 import { chromium } from "@playwright/test";
 import lighthouse, { desktopConfig } from "lighthouse";
 
+import { qualityGates } from "./lib/quality-gates.mjs";
+
 const projectRoot = path.resolve(import.meta.dirname, "..");
 const outputDirectory = path.join(projectRoot, "out");
 const reportDirectory = path.join(projectRoot, "reports", "lighthouse");
 const runs = positiveInteger(process.env.LIGHTHOUSE_RUNS, 3);
 
 const thresholds = {
-  accessibility: 1,
-  bestPractices: 0.95,
-  cumulativeLayoutShift: 0.05,
-  largestContentfulPaint: 2_500,
-  performance: 0.95,
-  seo: 1,
-  totalBlockingTime: 200,
+  accessibility: qualityGates.lighthouse.accessibility,
+  bestPractices: qualityGates.lighthouse.bestPractices,
+  cumulativeLayoutShift: qualityGates.lighthouse.cumulativeLayoutShift,
+  largestContentfulPaint: qualityGates.lighthouse.largestContentfulPaintMilliseconds,
+  performance: qualityGates.lighthouse.performance,
+  seo: qualityGates.lighthouse.seo,
+  totalBlockingTime: qualityGates.lighthouse.totalBlockingTimeMilliseconds,
 };
 
 await mkdir(reportDirectory, { recursive: true });

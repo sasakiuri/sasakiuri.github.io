@@ -1,0 +1,39 @@
+{
+  "$schema": "./quality-gates.schema.json",
+  "artifact": {
+    "maximumBytes": {
+      "css": 32768,
+      "fonts": 102400,
+      "html": 102400,
+      "images": 307200,
+      "individualFile": 307200,
+      "javascript": 716800,
+      "total": 1572864
+    },
+    "requiredPaths": [
+      ".nojekyll",
+      ".well-known/security.txt",
+      "404.html",
+      "index.html",
+      "manifest.webmanifest",
+      "robots.txt",
+      "sitemap.xml",
+      "sw.js"
+    ]
+  },
+  "lighthouse": {
+    "accessibility": 1,
+    "bestPractices": 0.95,
+    "cumulativeLayoutShift": 0.05,
+    "largestContentfulPaintMilliseconds": 2500,
+    "performance": 0.95,
+    "seo": 1,
+    "totalBlockingTimeMilliseconds": 200
+  },
+  "syntheticMonitoring": {
+    "certificateMinimumRemainingDays": 14,
+    "maximumResponseMilliseconds": 3000,
+    "requestTimeoutMilliseconds": 10000,
+    "retries": 5
+  }
+}
