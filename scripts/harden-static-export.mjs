@@ -52,7 +52,6 @@ for (const filePath of htmlFiles) {
     "script-src-attr 'none'",
     "style-src 'self' 'unsafe-inline'",
     "worker-src 'self'",
-    "upgrade-insecure-requests",
   ].join("; ");
   const meta = `<meta http-equiv="Content-Security-Policy" content="${policy}"/>`;
   const hardened = html.replace(/(<meta\s+charSet=["'][^"']+["']\s*\/>)/iu, `$1${meta}`);
