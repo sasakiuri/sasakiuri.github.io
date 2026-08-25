@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sasakiuri.github.io/schemas/quality-gates.schema.json",
+  "title": "Quality gates",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifact", "lighthouse", "syntheticMonitoring"],
+  "properties": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximumBytes", "requiredPaths"],
+      "properties": {
+        "maximumBytes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["css", "fonts", "html", "images", "individualFile", "javascript", "total"],
+          "properties": {
+            "css": { "$ref": "#/$defs/positiveInteger" },
+            "fonts": { "$ref": "#/$defs/positiveInteger" },
+            "html": { "$ref": "#/$defs/positiveInteger" },
+            "images": { "$ref": "#/$defs/positiveInteger" },
+            "individualFile": { "$ref": "#/$defs/positiveInteger" },
+            "javascript": { "$ref": "#/$defs/positiveInteger" },
+            "total": { "$ref": "#/$defs/positiveInteger" }
+          }
+        },
+        "requiredPaths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "lighthouse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accessibility",
+        "bestPractices",
+        "cumulativeLayoutShift",
+        "largestContentfulPaintMilliseconds",
+        "performance",
+        "seo",
+        "totalBlockingTimeMilliseconds"
+      ],
+      "properties": {
+        "accessibility": { "$ref": "#/$defs/score" },
+        "bestPractices": { "$ref": "#/$defs/score" },
+        "cumulativeLayoutShift": { "type": "number", "minimum": 0 },
+        "largestContentfulPaintMilliseconds": { "$ref": "#/$defs/positiveInteger" },
+        "performance": { "$ref": "#/$defs/score" },
+        "seo": { "$ref": "#/$defs/score" },
+        "totalBlockingTimeMilliseconds": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "syntheticMonitoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "certificateMinimumRemainingDays",
+        "maximumResponseMilliseconds",
+        "requestTimeoutMilliseconds",
+        "retries"
+      ],
+      "properties": {
+        "certificateMinimumRemainingDays": { "$ref": "#/$defs/positiveInteger" },
+        "maximumResponseMilliseconds": { "$ref": "#/$defs/positiveInteger" },
+        "requestTimeoutMilliseconds": { "$ref": "#/$defs/positiveInteger" },
+        "retries": { "$ref": "#/$defs/positiveInteger" }
+      }
+    }
+  },
+  "$defs": {
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "score": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

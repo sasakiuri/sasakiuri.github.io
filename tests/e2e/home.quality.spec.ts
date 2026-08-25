@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import qualityGates from "../../config/quality-gates.json" with { type: "json" };
+
 test("publishes complete canonical and social metadata", async ({ page }) => {
   await page.goto("/");
 
@@ -42,6 +44,16 @@ test("does not execute third-party requests or emit browser errors", async ({ pa
   expect(thirdPartyRequests).toEqual([]);
 });
 
+test("enforces a hash-based browser security policy", async ({ page }) => {
+  await page.goto("/");
+
+  const policy = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute("content");
+  expect(policy).toContain("default-src 'none'");
+  expect(policy).toContain("object-src 'none'");
+  expect(policy).toContain("script-src 'self' 'sha256-");
+  expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/u);
+});
+
 test("stays within deterministic browser delivery budgets", async ({ page }) => {
   const scriptBodies: Array<Promise<Buffer>> = [];
 
@@ -65,7 +77,7 @@ test("stays within deterministic browser delivery budgets", async ({ page }) => 
     };
   });
 
-  expect(totalJavaScriptBytes).toBeLessThan(700_000);
+  expect(totalJavaScriptBytes).toBeLessThan(qualityGates.artifact.maximumBytes.javascript);
   expect(navigation.domContentLoaded).toBeLessThan(3_000);
   expect(navigation.load).toBeLessThan(5_000);
 });

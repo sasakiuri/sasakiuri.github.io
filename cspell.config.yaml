@@ -24,6 +24,7 @@ words:
   - Biome
   - bradlc
   - commitlint
+  - Contentful
   - cspell
   - cyclonedx
   - Dependabot
@@ -37,6 +38,7 @@ words:
   - ghsas
   - irasutoya
   - httpsx
+  - HSTS
   - IgnoredVulns
   - jsdom
   - joshi
@@ -50,6 +52,7 @@ words:
   - lint-staged
   - nkajigaya
   - networkidle
+  - nojekyll
   - domcontentloaded
 
   - Noto
@@ -64,11 +67,15 @@ words:
   - SASAKI
   - sasakiuri
   - sarif
+  - Sigstore
   - sitemap
+  - SLSA
   - Stryker
   - Stylelint
+  - subdependency
   - sudachi
   - Tailwind
+  - tabnabbing
   - taichi
   - textlint
   - textlintrc

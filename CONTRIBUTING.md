@@ -10,10 +10,10 @@ pnpm install --frozen-lockfile
 pnpm validate
 ```
 
-WebKit までローカルで確認する場合は、Playwright のブラウザーと OS 依存を導入してから全ブラウザーを検査します。
+全 browser をローカルで確認する場合は、Playwright の browser と OS 依存を導入してから検査します。
 
 ```sh
-pnpm exec playwright install --with-deps chromium webkit
+pnpm exec playwright install --with-deps chromium firefox webkit
 pnpm test:e2e:all
 ```
 
@@ -26,6 +26,8 @@ pnpm test:e2e:all
 5. コミットメッセージは Conventional Commits に従います。
 6. 依存を追加する前に、標準 API または既存依存で解決できないか確認し、`pnpm deps:check` と `pnpm license:check`
    を通します。
+7. build や配信処理を変更した場合は `pnpm artifact:verify` と `pnpm test:reproducible`
+   を実行し、完全性 manifest を比較します。
 
 `pre-commit` では変更ファイルの Lint と整形、`commit-msg` ではメッセージ形式を自動検査します。通常の最終確認は
 `pnpm validate`、テスト境界を変更した場合は `pnpm test:mutation` も実行してください。

@@ -1,0 +1,50 @@
+name: Incident review
+description: 復旧済みの運用障害を記録し、再発防止策を追跡します。
+labels: [incident]
+body:
+  - type: dropdown
+    attributes:
+      label: Severity
+      options:
+        - SEV-1
+        - SEV-2
+        - SEV-3
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: 影響時間
+      description: 開始と復旧の時刻をタイムゾーン付きで記載してください。
+      placeholder: 2026-08-25 10:00 JST - 10:20 JST
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 影響
+      description: 利用者への影響、対象機能、検知経路を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Timeline
+      description: 検知、調査、緩和、復旧の主要な出来事を時系列で記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 根本原因
+      description: 個人ではなく、障害を許した技術的または運用上の条件を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 改善策
+      description: 担当、期限、検証方法を含む再発防止策を記載してください。
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Security
+      options:
+        - label: 機密性が必要な脆弱性情報を含んでいないことを確認しました。
+          required: true

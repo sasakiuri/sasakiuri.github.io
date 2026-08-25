@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
 const { CI } = process.env;
+// biome-ignore lint/complexity/useLiteralKeys: TypeScript requires bracket access for process.env index signatures.
+const reuseStaticExport = process.env["PLAYWRIGHT_REUSE_BUILD"] === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -31,13 +33,18 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     {
+      name: "firefox",
+      testIgnore: /visual\.spec\.ts/,
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
       name: "webkit",
       testIgnore: /visual\.spec\.ts/,
       use: { ...devices["Desktop Safari"] },
     },
   ],
   webServer: {
-    command: `npm run build && npm run preview -- --listen ${port}`,
+    command: `${reuseStaticExport ? "" : "npm run build && "}npm run preview -- --listen ${port}`,
     port,
     reuseExistingServer: !CI,
     timeout: 120_000,

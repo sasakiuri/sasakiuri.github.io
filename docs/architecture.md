@@ -42,6 +42,8 @@ CSS Modules には隣接する型宣言を置き、`noPropertyAccessFromIndexSig
   Worker は同一オリジンの GET だけを扱います。ナビゲーションは network-first、画像、フォント、CSS、JavaScript は stale-while-revalidate です。
 - ビルド後に静的成果物から content hash 付きの precache
   manifest を生成し、既存の HTML、CSS、JavaScript、フォント、画像を初回インストール時に保存します。
+- ビルド後の inline script を SHA-256 で列挙し、script に `unsafe-inline` を許可しない CSP meta を全 application
+  HTML に挿入します。CSP 挿入後の HTML を precache hash の入力にします。
 - ブラウザーの HTTP
   cache を消した状態でも、オフライン時に同じ HTML とピクセル単位で同じデザインを返します。専用 UI は追加しません。
 - `/.well-known/security.txt` は Private vulnerability reporting と `SECURITY.md` への機械可読な導線を提供します。
@@ -86,9 +88,14 @@ pnpm の `packageExtensions` で動的に読み込まれる TypeScript の peer 
 10. Playwright による Chromium と WebKit の機能、静的成果物、PWA オフライン動作、axe、画像差分の検証
 11. 本番依存のライセンス許可リスト、pnpm audit、Dependency Review、OSV、CodeQL、Gitleaks
 12. actionlint、zizmor、commit SHA 固定による GitHub Actions 自体の検査
+13. 静的成果物の broken reference、secret/source map 混入、種類別 byte 予算、全 file SHA-256 の検査
+14. Chromium、Firefox、WebKit が同じ build artifact を検証する build-once promotion
+15. 2 回の clean build の全 hash 比較と、本番 endpoint、PWA、TLS 証明書の継続的な合成監視
 
-CI は CycloneDX SBOM、ライセンス一覧、JUnit、Lighthouse、Playwright、Storybook、Stryker の成果物を保存します。検証済みの
-`out/` だけを GitHub Pages にデプロイします。依存パッケージと GitHub Actions は Dependabot が週次で更新します。
+CI は CycloneDX/SPDX SBOM、SLSA
+provenance、ライセンス一覧、JUnit、Lighthouse、Playwright、Storybook、Stryker、完全性 manifest の成果物を保存します。一度だけ build した
+`out/` をすべての gate へ昇格し、検証済みの同一 byte だけを GitHub Pages にデプロイします。依存パッケージ、GitHub
+Actions、Dev Container は Dependabot が週次で更新します。
 
 ## 性能予算
 
