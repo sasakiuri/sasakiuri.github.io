@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { configDefaults, defineConfig } from "vitest/config";
 
+const { CI } = process.env;
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -26,7 +28,7 @@ export default defineConfig({
     environment: "jsdom",
     exclude: [...configDefaults.exclude, "tests/e2e/**"],
     passWithNoTests: false,
-    reporters: process.env.CI ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }]] : ["default"],
+    reporters: CI ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }]] : ["default"],
     restoreMocks: true,
     setupFiles: ["./vitest.setup.ts"],
   },

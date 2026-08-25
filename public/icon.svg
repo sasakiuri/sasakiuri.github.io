@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">S/U</title>
+  <desc id="description">Sasakiuri personal index mark</desc>
+  <rect width="512" height="512" rx="112" fill="#caff30" />
+  <circle cx="256" cy="256" r="164" fill="#171613" />
+  <path d="M147 218c0-54 38-84 94-84 39 0 73 13 99 36l-38 45c-18-15-39-23-61-23-20 0-31 8-31 21 0 14 14 19 48 28 59 15 86 40 86 85 0 53-41 86-101 86-44 0-87-17-117-46l40-47c24 22 51 34 78 34 23 0 35-9 35-23 0-15-14-21-49-30-54-14-83-37-83-82Z" fill="#f5f1e8" />
+  <path d="m304 112 45 17-141 273-45-17 141-273Z" fill="#5c62ff" />
+</svg>

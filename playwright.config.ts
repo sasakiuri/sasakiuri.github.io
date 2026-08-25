@@ -1,14 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
+const { CI } = process.env;
 
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
-  forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI ? { workers: 1 } : {}),
-  reporter: process.env.CI
+  forbidOnly: Boolean(CI),
+  retries: CI ? 2 : 0,
+  ...(CI ? { workers: 1 } : {}),
+  reporter: CI
     ? [["github"], ["html", { open: "never" }], ["junit", { outputFile: "test-results/playwright-junit.xml" }]]
     : "list",
   snapshotPathTemplate: "{testDir}/__snapshots__/{testFilePath}/{arg}{ext}",
@@ -38,7 +39,7 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npm run preview -- --listen ${port}`,
     port,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !CI,
     timeout: 120_000,
   },
 });

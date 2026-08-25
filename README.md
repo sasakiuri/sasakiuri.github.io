@@ -9,7 +9,7 @@
 ## 必要な環境
 
 - Node.js 24.16.0（`.node-version` / `.nvmrc`）
-- pnpm 11.22.0
+- pnpm 11.23.0
 
 ```sh
 corepack enable
@@ -24,10 +24,10 @@ pnpm dev
 | コマンド               | 用途                                                            |
 | ---------------------- | --------------------------------------------------------------- |
 | `pnpm dev`             | Turbopack 開発サーバー                                          |
-| `pnpm build`           | `out/` への静的エクスポート                                     |
+| `pnpm build`           | 静的エクスポートと content hash 付き PWA precache の生成        |
 | `pnpm check`           | 書式、文章、依存境界、型、単体テスト、ライセンスの検査          |
 | `pnpm test:storybook`  | Story の操作テストと実ブラウザーでのアクセシビリティ検査        |
-| `pnpm test:e2e`        | Chromium の機能、axe、画像差分、配信量、SEO の検査              |
+| `pnpm test:e2e`        | Chromium の機能、axe、画像差分、PWA、配信量、SEO の検査         |
 | `pnpm test:e2e:all`    | Chromium と WebKit の全ブラウザー検査                           |
 | `pnpm test:lighthouse` | 3 回の Lighthouse 計測と中央値の予算検査                        |
 | `pnpm test:mutation`   | Stryker によるセキュリティ境界の Mutation Testing               |
@@ -41,10 +41,11 @@ WebKit は CI で常時実行します。ローカルで `pnpm test:e2e:all` を
 
 ## 構成
 
-- `src/app`: App Router、メタデータ、sitemap、robots、manifest
+- `src/app`: App Router、構造化メタデータ、OG 画像、sitemap、robots、manifest、Service Worker 登録
 - `src/components`: 表示コンポーネントと Storybook Story
-- `src/config`: Zod で検証する表示内容と URL 境界
-- `tests/e2e`: ブラウザー、アクセシビリティ、SEO、性能、ビジュアル回帰テスト
+- `src/config`: Zod で検証して深く凍結する表示内容と URL 境界
+- `public`: PWA アイコン、Service Worker、RFC 9116 の security.txt
+- `tests/e2e`: ブラウザー、アクセシビリティ、SEO、PWA、性能、ビジュアル回帰テスト
 - `tools`: TypeScript 5.9 を必要とする解析ツールの隔離ワークスペース
 - `.github/workflows`: 品質、セキュリティ、SBOM、Mutation Testing、GitHub Pages 配信
 

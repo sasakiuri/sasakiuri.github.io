@@ -7,6 +7,14 @@ test("publishes complete canonical and social metadata", async ({ page }) => {
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "ホームページです。");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "梶ヶ谷 宜之 | ホームページ");
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://sasakiuri.github.io/");
+  await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
+    "content",
+    /^SASAKI URI — 梶ヶ谷 宜之のホームページ/,
+  );
+  await expect(page.locator('meta[name="twitter:image:alt"]')).toHaveAttribute(
+    "content",
+    /^SASAKI URI — 梶ヶ谷 宜之のホームページ/,
+  );
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/manifest.webmanifest");
 });
 
