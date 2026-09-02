@@ -19,7 +19,9 @@ ignorePaths:
   - tests/e2e/__snapshots__/**
 words:
   - amannn
+  - Acorn
   - anchore
+  - apos
   - autodocs
   - Biome
   - bradlc
@@ -52,6 +54,7 @@ words:
   - lint-staged
   - nkajigaya
   - networkidle
+  - NOASSERTION
   - nojekyll
   - domcontentloaded
 
@@ -60,7 +63,10 @@ words:
   - noreferrer
   - opengraph
   - Playwright
+  - pipx
   - postcss
+  - pyspdxtools
+  - quasis
   - ossf
   - rhysd
   - rseidelsohn
@@ -70,6 +76,7 @@ words:
   - Sigstore
   - sitemap
   - SLSA
+  - SPDXID
   - slithy
   - Stryker
   - Stylelint

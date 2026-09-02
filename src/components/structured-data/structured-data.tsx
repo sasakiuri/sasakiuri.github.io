@@ -11,7 +11,7 @@ export function StructuredData() {
     description: siteConfig.description,
     inLanguage: siteConfig.language,
     mainEntity: {
-      "@id": `${siteConfig.url}/#person`,
+      "@id": new URL("#person", siteConfig.url).href,
       "@type": "Person",
       name: siteConfig.name,
       sameAs: siteConfig.socials.map(({ href }) => href),

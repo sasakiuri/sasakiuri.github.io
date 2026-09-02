@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://slithy.net/schemas/site-contract.schema.json",
+  "title": "SLITHY.NET publication contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "discovery", "origin", "pwa", "routes", "version"],
+  "properties": {
+    "$schema": { "const": "./site-contract.schema.json" },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["robotsArtifactPath", "sitemapArtifactPath"],
+      "properties": {
+        "robotsArtifactPath": { "$ref": "#/$defs/artifactPath" },
+        "sitemapArtifactPath": { "$ref": "#/$defs/artifactPath" }
+      }
+    },
+    "origin": { "$ref": "#/$defs/httpsUrl" },
+    "pwa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "serviceWorker"],
+      "properties": {
+        "manifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "backgroundColor",
+            "categories",
+            "display",
+            "icons",
+            "orientation",
+            "publicPath",
+            "shortName",
+            "themeColor"
+          ],
+          "properties": {
+            "backgroundColor": { "$ref": "#/$defs/color" },
+            "categories": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/nonEmptyText" }
+            },
+            "display": { "const": "standalone" },
+            "icons": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/manifestIcon" }
+            },
+            "orientation": { "const": "any" },
+            "publicPath": { "$ref": "#/$defs/publicPath" },
+            "shortName": { "$ref": "#/$defs/nonEmptyText" },
+            "themeColor": { "$ref": "#/$defs/color" }
+          }
+        },
+        "serviceWorker": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["additionalPrecachePaths", "cachePrefix", "navigationFallback", "publicPath", "scope"],
+          "properties": {
+            "additionalPrecachePaths": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/publicPath" }
+            },
+            "cachePrefix": { "type": "string", "pattern": "^[a-z0-9-]+-$" },
+            "navigationFallback": { "$ref": "#/$defs/directoryPath" },
+            "publicPath": { "$ref": "#/$defs/publicPath" },
+            "scope": { "$ref": "#/$defs/directoryPath" }
+          }
+        }
+      }
+    },
+    "routes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["personal", "root"],
+      "properties": {
+        "personal": { "$ref": "#/$defs/personalRoute" },
+        "root": { "$ref": "#/$defs/rootRoute" }
+      }
+    },
+    "version": { "const": 1 }
+  },
+  "$defs": {
+    "artifactPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:(?!\\.{1,2}(?:/|$))[A-Za-z0-9._~-]+/)*(?!\\.{1,2}$)[A-Za-z0-9._~-]+$"
+    },
+    "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "directoryPath": {
+      "type": "string",
+      "pattern": "^/(?:(?!\\.{1,2}(?:/|$))[A-Za-z0-9._~-]+/)*$"
+    },
+    "httpsUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alt", "height", "src", "width"],
+      "properties": {
+        "alt": { "$ref": "#/$defs/nonEmptyText" },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "src": { "$ref": "#/$defs/publicPath" },
+        "width": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "linkIcon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src", "type"],
+      "properties": {
+        "sizes": { "$ref": "#/$defs/nonEmptyText" },
+        "src": { "$ref": "#/$defs/publicPath" },
+        "type": { "$ref": "#/$defs/nonEmptyText" }
+      }
+    },
+    "manifestIcon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "sizes", "src", "type"],
+      "properties": {
+        "purpose": { "enum": ["any", "maskable"] },
+        "sizes": { "type": "string", "pattern": "^[1-9][0-9]*x[1-9][0-9]*$" },
+        "src": { "$ref": "#/$defs/publicPath" },
+        "type": { "const": "image/png" }
+      }
+    },
+    "nonEmptyText": { "type": "string", "minLength": 1 },
+    "personalRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appleTouchIcon",
+        "artifactPath",
+        "description",
+        "favicon",
+        "hero",
+        "language",
+        "name",
+        "pageHeading",
+        "path",
+        "socialImage",
+        "socialMetadata",
+        "socials",
+        "title",
+        "url"
+      ],
+      "properties": {
+        "appleTouchIcon": { "$ref": "#/$defs/linkIcon" },
+        "artifactPath": { "$ref": "#/$defs/artifactPath" },
+        "description": { "$ref": "#/$defs/nonEmptyText" },
+        "favicon": { "$ref": "#/$defs/linkIcon" },
+        "hero": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["annotation", "image", "label", "sourceUrl"],
+          "properties": {
+            "annotation": { "$ref": "#/$defs/nonEmptyText" },
+            "image": { "$ref": "#/$defs/image" },
+            "label": { "$ref": "#/$defs/nonEmptyText" },
+            "sourceUrl": { "$ref": "#/$defs/httpsUrl" }
+          }
+        },
+        "language": { "const": "ja" },
+        "name": { "$ref": "#/$defs/nonEmptyText" },
+        "pageHeading": { "$ref": "#/$defs/nonEmptyText" },
+        "path": { "const": "/sasakiuri/" },
+        "socialImage": { "$ref": "#/$defs/image" },
+        "socialMetadata": { "const": true },
+        "socials": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["href", "label"],
+            "properties": {
+              "href": { "$ref": "#/$defs/httpsUrl" },
+              "label": { "$ref": "#/$defs/nonEmptyText" }
+            }
+          }
+        },
+        "title": { "$ref": "#/$defs/nonEmptyText" },
+        "url": { "$ref": "#/$defs/httpsUrl" }
+      }
+    },
+    "publicPath": {
+      "type": "string",
+      "pattern": "^/(?:(?!\\.{1,2}(?:/|$))[A-Za-z0-9._~-]+/)*(?!\\.{1,2}$)[A-Za-z0-9._~-]+$"
+    },
+    "rootRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactPath", "description", "language", "path", "socialMetadata", "title", "url"],
+      "properties": {
+        "artifactPath": { "const": "index.html" },
+        "description": { "$ref": "#/$defs/nonEmptyText" },
+        "language": { "const": "en" },
+        "path": { "const": "/" },
+        "socialMetadata": { "const": false },
+        "title": { "$ref": "#/$defs/nonEmptyText" },
+        "url": { "$ref": "#/$defs/httpsUrl" }
+      }
+    }
+  }
+}

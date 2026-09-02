@@ -28,9 +28,9 @@ registry からの取得、Actions の OIDC 署名、Pages への deploy、別 o
 | 脅威                   | 例                                                   | 主な対策                                                                 |
 | ---------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------ |
 | Spoofing               | 偽の配布元や証明書でサイトを装う                     | HTTPS 強制、TLS 合成監視、canonical URL、Sigstore ベースの attestation   |
-| Tampering              | build 後に HTML や chunk を差し替える                | build-once promotion、SHA-256 マニフェスト、artifact digest、provenance  |
+| Tampering              | build 後に HTML、chunk、契約証跡を差し替える         | build-once promotion、tree／evidence seal、artifact digest、provenance   |
 | Repudiation            | 誰が何を配信したか追跡できない                       | Git history、environment deployment、OIDC attestation、90 日の証跡保存   |
-| Information disclosure | secret や source map を静的成果物へ混入する          | artifact allowlist、拡張子拒否、Gitleaks、secret scanning、公開前の検査  |
+| Information disclosure | secret や source map を静的成果物へ混入する          | topology 契約、拡張子拒否、Gitleaks、secret pattern、公開前の検査        |
 | Denial of service      | Pages 障害、巨大 asset、壊れた cache                 | 配信量予算、content hash cache、合成監視、再現可能な rollback            |
 | Elevation of privilege | 悪意ある Action や install script が権限を取得する   | 最小権限、commit SHA pin、zizmor、allowBuilds、trust policy、CodeQL      |
 | Cross-site scripting   | inline script または依存 chunk を注入する            | hash-based CSP、JSON-LD escaping、外部実行 resource 禁止、React escaping |
@@ -45,7 +45,10 @@ registry からの取得、Actions の OIDC 署名、Pages への deploy、別 o
   script、transitive な git または tarball dependency を拒否します。
 - GitHub Actions は mutable tag ではなく commit SHA で固定し、Dependabot で更新します。
 - CodeQL、OSV、Dependency Review、Gitleaks、license allowlist、OpenSSF Scorecard を独立した検知層として使います。
-- deploy 対象と attestation 対象は、browser と性能検査を通過した同一 artifact です。
+- deploy 対象と attestation 対象は、browser と性能検査を通過した同一 artifact です。quality
+  job が作った完全 evidence の seal digest と検証済み SBOM
+  digest を別経路で渡し、後続 job は shell へ直接展開せず、seal を書き換えずに file 集合、byte、semantic
+  evidence、attestation 対象 SBOM を照合します。
 
 ## 残余リスク
 
