@@ -12,6 +12,10 @@ test("renders the original content and metadata", async ({ page }) => {
     "src",
     "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
   );
+  const heroLabel = page.locator("ruby.hero-label");
+  await expect(heroLabel).toHaveCSS("font-size", "48px");
+  await expect(heroLabel).toHaveCSS("font-weight", "700");
+  await expect(heroLabel.locator("rt")).toHaveCSS("font-size", "24px");
   await expect(page.getByRole("heading", { name: "自己紹介" })).toHaveCount(0);
 
   const writing = page.getByRole("region", { name: "文章" });
