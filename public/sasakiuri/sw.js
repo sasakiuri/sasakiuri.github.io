@@ -55,7 +55,7 @@ async function networkFirst(request) {
     }
     return response;
   } catch {
-    return (await cache.match(request, { ignoreSearch: true })) ?? (await cache.match("/"));
+    return (await cache.match(request, { ignoreSearch: true })) ?? (await cache.match("/sasakiuri/"));
   }
 }
 

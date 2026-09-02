@@ -36,7 +36,7 @@ if (address === null || typeof address === "string") {
   throw new Error("The Lighthouse server did not expose a TCP port.");
 }
 
-const targetUrl = `http://127.0.0.1:${address.port}/`;
+const targetUrl = `http://127.0.0.1:${address.port}/sasakiuri/`;
 
 try {
   const measured = [];

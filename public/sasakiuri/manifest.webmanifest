@@ -1,0 +1,28 @@
+{
+  "background_color": "#ffffff",
+  "categories": ["personalization", "productivity"],
+  "description": "ホームページです。",
+  "display": "standalone",
+  "id": "/sasakiuri/",
+  "icons": [
+    {
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "/sasakiuri/icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "/sasakiuri/icon-512.png",
+      "type": "image/png"
+    }
+  ],
+  "lang": "ja",
+  "name": "梶ヶ谷 宜之 | ホームページ",
+  "orientation": "any",
+  "scope": "/sasakiuri/",
+  "short_name": "梶ヶ谷 宜之",
+  "start_url": "/sasakiuri/",
+  "theme_color": "#ffffff"
+}

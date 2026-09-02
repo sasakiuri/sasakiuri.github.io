@@ -14,7 +14,7 @@
     "textlint-rule-preset-japanese",
     "vitest",
   ],
-  "ignoreFiles": ["public/sw.js", "stryker.config.mjs"],
+  "ignoreFiles": ["public/sasakiuri/sw.js", "stryker.config.mjs"],
   "next": {
     "entry": ["src/app/{layout,page,manifest,robots,sitemap}.tsx!", "src/app/{manifest,robots,sitemap}.ts!"],
   },

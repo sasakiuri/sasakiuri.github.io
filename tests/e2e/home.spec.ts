@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
 });
 
 test("renders the original content and metadata", async ({ page }) => {
@@ -10,7 +10,7 @@ test("renders the original content and metadata", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "ホームページ" })).toBeVisible();
   await expect(page.getByRole("img", { name: "ハクビシン" })).toHaveAttribute(
     "src",
-    "/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
+    "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
   );
 
   const twitter = page.getByRole("link", { name: "Twitter" });
@@ -27,7 +27,7 @@ test("has no automatically detectable accessibility violations", async ({ page }
 
 test("exports crawler and application metadata", async ({ request }) => {
   const [manifest, robots, sitemap] = await Promise.all([
-    request.get("/manifest.webmanifest"),
+    request.get("/sasakiuri/manifest.webmanifest"),
     request.get("/robots.txt"),
     request.get("/sitemap.xml"),
   ]);
@@ -36,10 +36,12 @@ test("exports crawler and application metadata", async ({ request }) => {
   expect(await manifest.json()).toEqual(
     expect.objectContaining({
       lang: "ja",
-      start_url: "/",
+      scope: "/sasakiuri/",
+      start_url: "/sasakiuri/",
       theme_color: "#ffffff",
     }),
   );
-  expect(await robots.text()).toContain("Sitemap: https://sasakiuri.github.io/sitemap.xml");
-  expect(await sitemap.text()).toContain("<loc>https://sasakiuri.github.io</loc>");
+  expect(await robots.text()).toContain("Sitemap: https://slithy.net/sitemap.xml");
+  expect(await sitemap.text()).toContain("<loc>https://slithy.net/</loc>");
+  expect(await sitemap.text()).toContain("<loc>https://slithy.net/sasakiuri/</loc>");
 });

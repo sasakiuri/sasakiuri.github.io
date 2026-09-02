@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test("publishes installable app assets and structured profile data", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
 
-  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/apple-touch-icon.png");
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/sasakiuri/apple-touch-icon.png");
 
   const structuredData = page.locator('script[type="application/ld+json"]');
   const profile = JSON.parse((await structuredData.textContent()) ?? "");
@@ -18,18 +18,18 @@ test("publishes installable app assets and structured profile data", async ({ pa
     }),
   );
 
-  const manifest = await request.get("/manifest.webmanifest");
+  const manifest = await request.get("/sasakiuri/manifest.webmanifest");
   const manifestBody = await manifest.json();
   expect(manifestBody.icons).toEqual(
     expect.arrayContaining([
-      expect.objectContaining({ purpose: "any", sizes: "192x192", src: "/icon-192.png" }),
-      expect.objectContaining({ purpose: "maskable", sizes: "512x512", src: "/icon-512.png" }),
+      expect.objectContaining({ purpose: "any", sizes: "192x192", src: "/sasakiuri/icon-192.png" }),
+      expect.objectContaining({ purpose: "maskable", sizes: "512x512", src: "/sasakiuri/icon-512.png" }),
     ]),
   );
 
   const [serviceWorker, appIcon, securityPolicy] = await Promise.all([
-    request.get("/sw.js"),
-    request.get("/icon-512.png"),
+    request.get("/sasakiuri/sw.js"),
+    request.get("/sasakiuri/icon-512.png"),
     request.get("/.well-known/security.txt"),
   ]);
   expect(serviceWorker.headers()["content-type"]).toContain("application/javascript");
@@ -45,7 +45,7 @@ test("publishes installable app assets and structured profile data", async ({ pa
 
   const socialImageUrl = await page.locator('meta[property="og:image"]').getAttribute("content");
   expect(socialImageUrl).not.toBeNull();
-  const parsedSocialImageUrl = new URL(socialImageUrl ?? "", "https://sasakiuri.github.io");
+  const parsedSocialImageUrl = new URL(socialImageUrl ?? "", "https://slithy.net");
   const socialImage = await request.get(`${parsedSocialImageUrl.pathname}${parsedSocialImageUrl.search}`);
   expect(socialImage.headers()["content-type"]).toContain("image/png");
 });
@@ -54,7 +54,7 @@ test("keeps the original home page available offline", async ({ browserName, con
   test.skip(browserName !== "chromium", "The deterministic offline contract is exercised once in Chromium.");
 
   await page.setViewportSize({ height: 720, width: 1280 });
-  await page.goto("/", { waitUntil: "load" });
+  await page.goto("/sasakiuri/", { waitUntil: "load" });
   await page.evaluate(async () => document.fonts.ready);
   await page.waitForFunction(async () => {
     if (!("serviceWorker" in navigator)) {

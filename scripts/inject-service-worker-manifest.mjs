@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 const scriptsDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = path.resolve(scriptsDirectory, "..");
 const outputDirectory = path.join(projectDirectory, "out");
-const serviceWorkerPath = path.join(outputDirectory, "sw.js");
+const personalDirectory = path.join(outputDirectory, "sasakiuri");
+const serviceWorkerPath = path.join(personalDirectory, "sw.js");
 const versionPlaceholder = '"__PRECACHE_VERSION__"';
 const urlsPlaceholder = '["__PRECACHE_URLS__"]';
 
@@ -43,8 +44,11 @@ async function assertFile(filePath) {
 const staticDirectory = path.join(outputDirectory, "_next", "static");
 const staticFiles = await listFiles(staticDirectory);
 const assets = [
-  { filePath: path.join(outputDirectory, "index.html"), url: "/" },
-  ...shellFiles.map((file) => ({ filePath: path.join(outputDirectory, file), url: `/${file}` })),
+  { filePath: path.join(personalDirectory, "index.html"), url: "/sasakiuri/" },
+  ...shellFiles.map((file) => ({
+    filePath: path.join(personalDirectory, file),
+    url: `/sasakiuri/${file}`,
+  })),
   ...staticFiles.map((filePath) => ({
     filePath,
     url: `/${path.relative(outputDirectory, filePath).split(path.sep).join("/")}`,

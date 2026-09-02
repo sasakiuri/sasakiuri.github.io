@@ -18,7 +18,7 @@ describe("HomePage", () => {
       name: "ハクビシン",
     });
 
-    expect(image).toHaveAttribute("src", "/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp");
+    expect(image).toHaveAttribute("src", "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp");
     expect(image).toHaveAttribute("height", "337.438");
     expect(image).toHaveAttribute("width", "384");
 

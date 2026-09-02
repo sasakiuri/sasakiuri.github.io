@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 import qualityGates from "../../config/quality-gates.json" with { type: "json" };
 
 test("publishes complete canonical and social metadata", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
 
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://sasakiuri.github.io/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://slithy.net/sasakiuri/");
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", "ホームページです。");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "梶ヶ谷 宜之 | ホームページ");
-  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://sasakiuri.github.io/");
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://slithy.net/sasakiuri/");
   await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute(
     "content",
     /^SASAKI URI — 梶ヶ谷 宜之のホームページ/,
@@ -17,7 +17,7 @@ test("publishes complete canonical and social metadata", async ({ page }) => {
     "content",
     /^SASAKI URI — 梶ヶ谷 宜之のホームページ/,
   );
-  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/manifest.webmanifest");
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/sasakiuri/manifest.webmanifest");
 });
 
 test("does not execute third-party requests or emit browser errors", async ({ page }) => {
@@ -37,7 +37,7 @@ test("does not execute third-party requests or emit browser errors", async ({ pa
     }
   });
 
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
   await page.waitForLoadState("networkidle");
 
   expect(browserErrors).toEqual([]);
@@ -45,7 +45,7 @@ test("does not execute third-party requests or emit browser errors", async ({ pa
 });
 
 test("enforces a hash-based browser security policy", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
 
   const policy = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute("content");
   expect(policy).toContain("default-src 'none'");
@@ -63,7 +63,7 @@ test("stays within deterministic browser delivery budgets", async ({ page }) => 
     }
   });
 
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
   await page.waitForLoadState("networkidle");
 
   const scripts = await Promise.all(scriptBodies);

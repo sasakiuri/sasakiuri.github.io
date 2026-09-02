@@ -8,8 +8,8 @@ export function ServiceWorkerRegistration() {
       return;
     }
 
-    void navigator.serviceWorker.register("/sw.js", {
-      scope: "/",
+    void navigator.serviceWorker.register("/sasakiuri/sw.js", {
+      scope: "/sasakiuri/",
       updateViaCache: "none",
     });
   }, []);
