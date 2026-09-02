@@ -22,6 +22,7 @@ describe("HomePage", () => {
     expect(image).toHaveAttribute("height", "264");
     expect(image).toHaveAttribute("width", "300");
 
+    expect(screen.getByText("ハクビシン", { selector: "ruby" })).toHaveClass("hero-label");
     expect(screen.getByText("ハクビシン", { selector: "ruby" })).toHaveTextContent("ハクビシン（アライグマ）");
     expect(screen.getAllByRole("separator")).toHaveLength(3);
     expect(screen.queryByRole("heading", { name: "自己紹介" })).not.toBeInTheDocument();

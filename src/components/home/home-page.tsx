@@ -17,7 +17,7 @@ export function HomePage() {
           </ExternalLink>
         </p>
         <p>
-          <ruby>
+          <ruby className="hero-label">
             {hero.label}
             <rp>（</rp>
             <rt>{hero.annotation}</rt>
