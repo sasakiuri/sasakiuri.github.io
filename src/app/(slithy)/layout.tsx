@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  description: "SLITHY.NET explains the meaning of “slithy”—a word with two meanings packed into one.",
   icons: {
     icon: [{ sizes: "16x16", type: "image/x-icon", url: "/favicon.ico" }],
   },

@@ -7,6 +7,10 @@ test.beforeEach(async ({ page }) => {
 
 test("restores the archived SLITHY.NET home page", async ({ page, request }) => {
   await expect(page).toHaveTitle("SLITHY.NET");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    "SLITHY.NET explains the meaning of “slithy”—a word with two meanings packed into one.",
+  );
   await expect(page.getByRole("heading", { level: 1, name: "SLITHY.NET" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "WHAT IS SLITHY?" })).toBeVisible();
   await expect(page.getByText(/there are two meanings packed up into one word/u)).toBeVisible();
