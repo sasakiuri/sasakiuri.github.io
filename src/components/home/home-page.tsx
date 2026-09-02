@@ -48,7 +48,7 @@ export function HomePage() {
 
       <hr />
 
-      <nav aria-labelledby="socials-heading">
+      <nav aria-labelledby="socials-heading" className="social-links">
         <h2 id="socials-heading">SNS</h2>
         <ul>
           {socialProfiles.map((social) => (
