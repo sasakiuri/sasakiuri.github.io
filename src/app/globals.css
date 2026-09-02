@@ -20,6 +20,11 @@ body {
   min-height: 24px;
 }
 
+#diary-query {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
 @media (width < 768px) {
   body {
     padding-right: 8px;
