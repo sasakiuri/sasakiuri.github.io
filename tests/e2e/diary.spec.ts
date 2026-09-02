@@ -275,10 +275,14 @@ test("uses the shared native theme without horizontal overflow", async ({ page }
 
   const result = await page.locator("body").evaluate((body) => {
     const style = getComputedStyle(body);
+    const viewportRight = document.documentElement.clientWidth;
     return {
       backgroundColor: style.backgroundColor,
       color: style.color,
       hasHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      overflowingElements: [...body.querySelectorAll("*")]
+        .filter((element) => element.getBoundingClientRect().right > viewportRight)
+        .map((element) => element.outerHTML.slice(0, 120)),
     };
   });
 
@@ -286,6 +290,7 @@ test("uses the shared native theme without horizontal overflow", async ({ page }
     backgroundColor: "rgb(240, 238, 230)",
     color: "rgb(20, 20, 19)",
     hasHorizontalOverflow: false,
+    overflowingElements: [],
   });
 });
 

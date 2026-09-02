@@ -257,8 +257,8 @@ export function DiaryExplorer({ initialPosts, totalPosts, years }: DiaryExplorer
             onChange={(event) => updateView({ dateFrom: event.currentTarget.value, page: 1 }, "push")}
             type="date"
             value={view.dateFrom}
-          />{" "}
-          <label htmlFor="diary-date-to">終了</label>{" "}
+          />
+          <wbr /> <label htmlFor="diary-date-to">終了</label>{" "}
           <input
             disabled={!ready}
             id="diary-date-to"
