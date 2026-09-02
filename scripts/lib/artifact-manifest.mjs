@@ -5,6 +5,7 @@ import { siteContract, sortOrdinal } from "./site-contract.mjs";
 
 const treeFormat = Buffer.from("slithy-static-tree-v3\0", "utf8");
 const sealFormat = Buffer.from("slithy-static-seal-v3\0", "utf8");
+const contractedRoutes = [siteContract.routes.root, siteContract.routes.personal, siteContract.routes.diary];
 
 export function createArtifactManifest({ contract, files, totals }) {
   const orderedFiles = [...files].sort((left, right) => compareText(left.path, right.path));
@@ -176,7 +177,7 @@ function validateContractEvidence(contract, files) {
     siteContract.discovery.sitemapArtifactPath,
     ["urls"],
   );
-  const expectedCanonicalUrls = [siteContract.routes.root.url, siteContract.routes.personal.url];
+  const expectedCanonicalUrls = contractedRoutes.map(({ url }) => url);
   if (!isDeepStrictEqual(contract.discovery.sitemap.urls, expectedCanonicalUrls)) {
     throw new TypeError("Sitemap evidence URLs do not match the route contract.");
   }
@@ -209,10 +210,10 @@ function validateContractEvidence(contract, files) {
     throw new TypeError("Service Worker evidence is invalid.");
   }
 
-  if (!Array.isArray(contract.routes) || contract.routes.length !== 2) {
-    throw new TypeError("Route evidence must describe exactly two routes.");
+  if (!Array.isArray(contract.routes) || contract.routes.length !== contractedRoutes.length) {
+    throw new TypeError(`Route evidence must describe exactly ${contractedRoutes.length} routes.`);
   }
-  const expectedRoutes = [siteContract.routes.root, siteContract.routes.personal];
+  const expectedRoutes = contractedRoutes;
   for (const [index, routeEvidence] of contract.routes.entries()) {
     const route = expectedRoutes[index];
     validateFileEvidence(routeEvidence, `route ${index + 1} evidence`, fileByPath, route.artifactPath, [
@@ -220,8 +221,7 @@ function validateContractEvidence(contract, files) {
       "externalLinks",
       "path",
     ]);
-    const expectedExternalLinks =
-      route === siteContract.routes.personal ? [route.hero.sourceUrl, ...route.socials.map(({ href }) => href)] : [];
+    const expectedExternalLinks = getExpectedExternalLinks(route);
     if (
       routeEvidence.path !== route.path ||
       routeEvidence.canonicalUrl !== route.url ||
@@ -240,6 +240,13 @@ function validateContractEvidence(contract, files) {
   ) {
     throw new TypeError("Artifact contract source evidence is invalid.");
   }
+}
+
+function getExpectedExternalLinks(route) {
+  if (route === siteContract.routes.personal) {
+    return [route.hero.sourceUrl, ...route.socials.map(({ href }) => href)];
+  }
+  return [];
 }
 
 function validateAssetGraph(graph, fileByPath) {

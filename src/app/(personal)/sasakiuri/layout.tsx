@@ -72,7 +72,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: "light",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: siteContract.pwa.manifest.themeColor,
   width: "device-width",
 };
 

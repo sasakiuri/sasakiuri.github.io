@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [1.x]
   merge_group:
+  repository_dispatch:
+    types: [diary-updated]
   workflow_dispatch:
 
 permissions:
@@ -296,7 +298,9 @@ jobs:
 
   deploy:
     name: Deploy GitHub Pages
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name ==
+      'repository_dispatch'
     needs: [browser, components, performance, quality, workflow-lint]
     runs-on: ubuntu-24.04
     timeout-minutes: 15

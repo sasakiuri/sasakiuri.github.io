@@ -5,14 +5,14 @@ async function waitForStablePage(page: Page) {
   await page.evaluate(async () => document.fonts.ready);
 }
 
-test("desktop design is unchanged", async ({ page }) => {
+test("desktop uses the narrow native design", async ({ page }) => {
   await page.setViewportSize({ height: 720, width: 1280 });
   await waitForStablePage(page);
 
   await expect(page).toHaveScreenshot("home-desktop.png");
 });
 
-test("mobile design is unchanged", async ({ page }) => {
+test("mobile uses the narrow native design", async ({ page }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await waitForStablePage(page);
 

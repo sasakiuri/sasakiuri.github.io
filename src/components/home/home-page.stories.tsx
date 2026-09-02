@@ -21,6 +21,7 @@ export const Default: Story = {
     await expect(canvas.getByRole("heading", { level: 1, name: "ホームページ" })).toBeVisible();
     await expect(canvas.getByRole("img", { name: "ハクビシン" })).toBeVisible();
     await expect(canvas.getByRole("link", { name: "Twitter" })).toHaveAttribute("rel", "noreferrer noopener");
+    await expect(canvas.getByRole("region", { name: "作ったもの" })).toBeVisible();
     await expect(canvas.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/sasakiuri");
   },
 };

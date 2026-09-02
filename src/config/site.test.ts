@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { siteConfig, siteConfigSchema, siteContract, siteContractSchema } from "./site";
+import { diaryConfig, siteConfig, siteConfigSchema, siteContract, siteContractSchema } from "./site";
 
 describe("siteConfig", () => {
   it("matches the runtime schema and is deeply immutable", () => {
@@ -13,6 +13,8 @@ describe("siteConfig", () => {
     expect(Object.isFrozen(siteContract)).toBe(true);
     expect(Object.isFrozen(siteContract.pwa)).toBe(true);
     expect(Object.isFrozen(siteContract.pwa.manifest.icons)).toBe(true);
+    expect(diaryConfig.path).toBe("/sasakuri/diary/");
+    expect(Object.isFrozen(diaryConfig)).toBe(true);
   });
 
   it("rejects invalid image dimensions", () => {
@@ -113,6 +115,10 @@ describe("siteConfig", () => {
     [
       "an artifact path that differs from the route",
       (candidate: MutableSiteContract) => (candidate.routes.personal.artifactPath = "sasakiuri/home.html"),
+    ],
+    [
+      "a diary URL that differs from the route",
+      (candidate: MutableSiteContract) => (candidate.routes.diary.url = "https://slithy.net/wrong-diary/"),
     ],
   ])("rejects %s", (_label, mutate) => {
     const candidate = structuredClone(siteContract) as MutableSiteContract;

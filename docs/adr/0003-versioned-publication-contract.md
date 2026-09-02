@@ -5,7 +5,8 @@
 
 ## Context
 
-トップページと個人ページの外観は過去の状態を意図的に保つ一方、canonical、JSON-LD、Web App Manifest、Service
+トップページと個人ページの外観は過去の状態を意図的に保ち、日記を独立した静的 route として公開します。一方、canonical、JSON-LD、Web
+App Manifest、Service
 Worker、sitemap、robots、公開アセットには同じ URL と metadata が複数箇所に現れます。型検査とブラウザーテストだけでは、表示を変えずに起きる metadata の不整合や、ビルド後の file 差し替えを十分に説明できません。
 
 従来の artifact

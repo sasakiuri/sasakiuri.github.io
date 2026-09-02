@@ -39,7 +39,6 @@ overrides:
   "typed-rest-client>qs": "6.15.3"
 
 allowBuilds:
-  "@tailwindcss/oxide": true
   esbuild: true
   sharp: true
   simple-git-hooks: true

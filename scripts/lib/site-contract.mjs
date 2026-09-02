@@ -20,9 +20,10 @@ export function validateSiteContract(value) {
   assertEqual(value.discovery.sitemapArtifactPath, "sitemap.xml", "sitemap artifact path");
 
   assertRecord(value.routes, "route contract");
-  assertExactKeys(value.routes, ["personal", "root"], "route contract");
+  assertExactKeys(value.routes, ["diary", "personal", "root"], "route contract");
   validateRootRoute(value.routes.root, value.origin);
   validatePersonalRoute(value.routes.personal, value.origin);
+  validateDiaryRoute(value.routes.diary, value.origin);
 
   assertRecord(value.pwa, "PWA contract");
   assertExactKeys(value.pwa, ["manifest", "serviceWorker"], "PWA contract");
@@ -132,6 +133,21 @@ function validatePersonalRoute(route, origin) {
     route.socials.map(({ label }) => label),
     "Social labels",
   );
+}
+
+function validateDiaryRoute(route, origin) {
+  assertRecord(route, "diary route");
+  assertExactKeys(
+    route,
+    ["artifactPath", "description", "language", "path", "socialMetadata", "sourceUrl", "title", "url"],
+    "diary route",
+  );
+  validateCommonRoute(route, origin, "diary route");
+  assertEqual(route.language, "ja", "diary language");
+  assertEqual(route.path, "/sasakuri/diary/", "diary path");
+  assertEqual(route.socialMetadata, false, "diary social metadata flag");
+  assertEqual(route.sourceUrl, "https://x.com/sasakiuri", "diary source URL");
+  assertSafeExternalUrl(route.sourceUrl, "diary source URL");
 }
 
 function validateCommonRoute(route, origin, name) {

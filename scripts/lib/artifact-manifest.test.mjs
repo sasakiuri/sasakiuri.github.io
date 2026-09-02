@@ -12,6 +12,7 @@ const files = [
   fileRecord("sitemap.xml", "sitemap", "application/xml"),
   fileRecord("robots.txt", "robots", "text/plain"),
   fileRecord("sasakiuri/index.html", "personal", "text/html"),
+  fileRecord("sasakuri/diary/index.html", "diary", "text/html"),
   fileRecord("index.html", "root", "text/html"),
 ];
 const totals = {
@@ -44,6 +45,7 @@ describe("artifact integrity seal", () => {
       "sasakiuri/index.html",
       "sasakiuri/manifest.webmanifest",
       "sasakiuri/sw.js",
+      "sasakuri/diary/index.html",
       "sitemap.xml",
     ]);
   });
@@ -141,7 +143,7 @@ function manifest() {
         robots: fileEvidence(siteContract.discovery.robotsArtifactPath),
         sitemap: {
           ...fileEvidence(siteContract.discovery.sitemapArtifactPath),
-          urls: [siteContract.routes.root.url, siteContract.routes.personal.url],
+          urls: [siteContract.routes.root.url, siteContract.routes.personal.url, siteContract.routes.diary.url],
         },
       },
       pwa: {
@@ -155,7 +157,7 @@ function manifest() {
           version: "0123456789abcdef",
         },
       },
-      routes: [siteContract.routes.root, siteContract.routes.personal].map((route) => ({
+      routes: [siteContract.routes.root, siteContract.routes.personal, siteContract.routes.diary].map((route) => ({
         ...fileEvidence(route.artifactPath),
         canonicalUrl: route.url,
         externalLinks:
