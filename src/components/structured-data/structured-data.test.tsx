@@ -17,6 +17,7 @@ describe("StructuredData", () => {
         "@context": "https://schema.org",
         "@type": "ProfilePage",
         mainEntity: expect.objectContaining({
+          "@id": "https://slithy.net/sasakiuri/#person",
           "@type": "Person",
           name: siteConfig.name,
           sameAs: siteConfig.socials.map(({ href }) => href),

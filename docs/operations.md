@@ -63,12 +63,18 @@ flowchart LR
   Pages --> Monitor[Synthetic monitoring]
 ```
 
-`quality` job だけが本番成果物をビルドします。後続 job は Actions artifact の同一 `out/`
-を取得し、完全性、ブラウザー、アクセシビリティ、画像差分、PWA、性能を検査します。すべて通過した成果物だけを決定的な tar.gz に梱包し、SPDX
-SBOM、SLSA provenance、SBOM attestation を発行してから GitHub Pages へ昇格します。
+`quality` job だけが本番成果物をビルドします。file byte の tree digest と、route、metadata、PWA、discovery、asset
+graph を含む完全な evidence の seal digest を生成します。`out/` と seal は同じ Actions
+artifact に格納し、形式検証済みの seal digest は job
+output でも渡します。後続 job は seal を再生成せず、取得した byte と evidence を既存 seal に照合してから、ブラウザー、アクセシビリティ、画像差分、PWA、性能を検査します。SPDX
+SBOM は全 file の SHA-1 と SHA-256、package verification code を持ち、公式 SPDX
+Tools で検証します。検証済み SBOM の SHA-256 は別経路で deploy
+job へ渡し、attestation 直前に再照合します。すべて通過した成果物だけを決定的な tar.gz に梱包し、SLSA provenance と SBOM
+attestation を発行してから GitHub Pages へ昇格します。
 
-`release-evidence` には tar.gz、SHA-256 マニフェスト、SPDX SBOM を 90 日保存します。`gh attestation verify`
-では、取得した tar.gz がこのリポジトリの GitHub Actions で生成されたことを検証できます。
+`release-evidence` には tar.gz、tree と semantic evidence の SHA-256 seal、SPDX
+SBOM を 90 日保存します。`gh attestation verify` では、取得した tar.gz がこのリポジトリの GitHub
+Actions で生成されたことを検証できます。
 
 ```sh
 gh attestation verify site-export.tar.gz -R sasakiuri/sasakiuri.github.io
@@ -79,7 +85,8 @@ gh attestation verify site-export.tar.gz -R sasakiuri/sasakiuri.github.io
 1. `Production monitoring` の JSON、JUnit、job summary で、失敗した endpoint、応答時間、証明書情報を確認します。
 2. GitHub Pages Status と `Verify and deploy`
    の直近 run を確認し、配信基盤と成果物のどちらに原因があるかを切り分けます。
-3. 成果物起因なら、最後に成功した commit の workflow を再実行します。固定依存と再現可能ビルドにより、同じ SHA-256 マニフェストを再生成できることが復旧条件です。
+3. 成果物起因なら、最後に成功した commit の workflow を再実行します。固定依存と再現可能ビルドにより、同じ SHA-256 tree
+   seal を再生成できることが復旧条件です。
 4. Service Worker 起因なら、新しい content hash の成果物を配信します。activate 時に旧 `sasakiuri-*`
    cache が削除されます。
 5. 復旧後に `Production monitoring` を手動実行し、全 check の成功を確認します。

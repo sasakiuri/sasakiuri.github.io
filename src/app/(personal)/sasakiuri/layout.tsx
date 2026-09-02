@@ -3,15 +3,15 @@ import type { ReactNode } from "react";
 
 import { ServiceWorkerRegistration } from "@/app/service-worker-registration";
 import { StructuredData } from "@/components/structured-data/structured-data";
-import { siteConfig } from "@/config/site";
+import { siteConfig, siteContract } from "@/config/site";
 
 import "../../globals.css";
 
 const socialImage = {
-  alt: "SASAKI URI — 梶ヶ谷 宜之のホームページ",
-  height: 630,
-  url: "/sasakiuri/opengraph-image.png",
-  width: 1_200,
+  alt: siteConfig.socialImage.alt,
+  height: siteConfig.socialImage.height,
+  url: siteConfig.socialImage.src,
+  width: siteConfig.socialImage.width,
 } as const;
 
 export const metadata: Metadata = {
@@ -29,12 +29,21 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    apple: [{ sizes: "180x180", type: "image/png", url: "/sasakiuri/apple-touch-icon.png" }],
-    icon: "/sasakiuri/favicon.ico",
+    apple: [
+      {
+        sizes: siteConfig.appleTouchIcon.sizes,
+        type: siteConfig.appleTouchIcon.type,
+        url: siteConfig.appleTouchIcon.src,
+      },
+    ],
+    icon: {
+      type: siteConfig.favicon.type,
+      url: siteConfig.favicon.src,
+    },
   },
   keywords: ["梶ヶ谷宜之", "sasakiuri", "personal website", "web development"],
-  manifest: "/sasakiuri/manifest.webmanifest",
-  metadataBase: new URL(new URL(siteConfig.url).origin),
+  manifest: siteContract.pwa.manifest.publicPath,
+  metadataBase: new URL(siteContract.origin),
   openGraph: {
     description: siteConfig.description,
     images: [socialImage],
@@ -77,7 +86,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <StructuredData />
         {children}
-        <ServiceWorkerRegistration />
+        <ServiceWorkerRegistration
+          scope={siteContract.pwa.serviceWorker.scope}
+          scriptUrl={siteContract.pwa.serviceWorker.publicPath}
+        />
       </body>
     </html>
   );

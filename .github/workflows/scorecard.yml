@@ -5,16 +5,21 @@ on:
     - cron: "30 20 * * 0"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  id-token: write
-  security-events: write
+permissions: read-all
+
+concurrency:
+  group: scorecard-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   scorecard:
     name: Scorecard
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,13 +34,16 @@ jobs:
           results_format: sarif
 
       - name: Upload SARIF
+        if: always() && hashFiles('results.sarif') != ''
         uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
         with:
           sarif_file: results.sarif
 
       - name: Upload Scorecard artifact
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: scorecard-results
           path: results.sarif
+          if-no-files-found: error
           retention-days: 14

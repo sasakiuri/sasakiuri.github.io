@@ -1,7 +1,8 @@
-const cachePrefix = "sasakiuri-";
+const cachePrefix = "__CACHE_PREFIX__";
 const precacheVersion = "__PRECACHE_VERSION__";
 const cacheName = `${cachePrefix}${precacheVersion}`;
 const precacheUrls = ["__PRECACHE_URLS__"];
+const navigationFallback = "__NAVIGATION_FALLBACK__";
 
 globalThis.addEventListener("install", (event) => {
   event.waitUntil(
@@ -55,7 +56,7 @@ async function networkFirst(request) {
     }
     return response;
   } catch {
-    return (await cache.match(request, { ignoreSearch: true })) ?? (await cache.match("/sasakiuri/"));
+    return (await cache.match(request, { ignoreSearch: true })) ?? (await cache.match(navigationFallback));
   }
 }
 

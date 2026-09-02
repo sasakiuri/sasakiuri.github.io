@@ -1,0 +1,103 @@
+{
+  "$schema": "./site-contract.schema.json",
+  "discovery": {
+    "robotsArtifactPath": "robots.txt",
+    "sitemapArtifactPath": "sitemap.xml"
+  },
+  "origin": "https://slithy.net",
+  "pwa": {
+    "manifest": {
+      "backgroundColor": "#ffffff",
+      "categories": ["personalization", "productivity"],
+      "display": "standalone",
+      "icons": [
+        {
+          "purpose": "any",
+          "sizes": "192x192",
+          "src": "/sasakiuri/icon-192.png",
+          "type": "image/png"
+        },
+        {
+          "purpose": "maskable",
+          "sizes": "512x512",
+          "src": "/sasakiuri/icon-512.png",
+          "type": "image/png"
+        }
+      ],
+      "orientation": "any",
+      "publicPath": "/sasakiuri/manifest.webmanifest",
+      "shortName": "梶ヶ谷 宜之",
+      "themeColor": "#ffffff"
+    },
+    "serviceWorker": {
+      "additionalPrecachePaths": ["/sasakiuri/icon.svg"],
+      "cachePrefix": "sasakiuri-",
+      "navigationFallback": "/sasakiuri/",
+      "publicPath": "/sasakiuri/sw.js",
+      "scope": "/sasakiuri/"
+    }
+  },
+  "routes": {
+    "personal": {
+      "appleTouchIcon": {
+        "sizes": "180x180",
+        "src": "/sasakiuri/apple-touch-icon.png",
+        "type": "image/png"
+      },
+      "artifactPath": "sasakiuri/index.html",
+      "url": "https://slithy.net/sasakiuri/",
+      "description": "ホームページです。",
+      "favicon": {
+        "src": "/sasakiuri/favicon.ico",
+        "type": "image/x-icon"
+      },
+      "hero": {
+        "annotation": "アライグマ",
+        "image": {
+          "alt": "ハクビシン",
+          "height": 337.438,
+          "src": "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
+          "width": 384
+        },
+        "label": "ハクビシン",
+        "sourceUrl": "https://www.irasutoya.com/2014/12/blog-post_964.html"
+      },
+      "language": "ja",
+      "name": "梶ヶ谷 宜之",
+      "pageHeading": "ホームページ",
+      "path": "/sasakiuri/",
+      "socialImage": {
+        "alt": "SASAKI URI — 梶ヶ谷 宜之のホームページ",
+        "height": 630,
+        "src": "/sasakiuri/opengraph-image.png",
+        "width": 1200
+      },
+      "socialMetadata": true,
+      "socials": [
+        {
+          "href": "https://twitter.com/sasakiuri",
+          "label": "Twitter"
+        },
+        {
+          "href": "https://www.facebook.com/nkajigaya1128",
+          "label": "Facebook"
+        },
+        {
+          "href": "https://github.com/sasakiuri",
+          "label": "GitHub"
+        }
+      ],
+      "title": "梶ヶ谷 宜之 | ホームページ"
+    },
+    "root": {
+      "artifactPath": "index.html",
+      "url": "https://slithy.net/",
+      "description": "SLITHY.NET explains the meaning of “slithy”—a word with two meanings packed into one.",
+      "language": "en",
+      "path": "/",
+      "socialMetadata": false,
+      "title": "SLITHY.NET"
+    }
+  },
+  "version": 1
+}

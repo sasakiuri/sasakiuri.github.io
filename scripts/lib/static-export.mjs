@@ -24,11 +24,15 @@ export async function collectFiles(rootDirectory) {
     }),
   );
 
-  return nested.flat().sort((left, right) => left.localeCompare(right));
+  return nested.flat().sort();
 }
 
 export function digest(buffer, encoding = "hex") {
   return createHash("sha256").update(buffer).digest(encoding);
+}
+
+export function digestSha1(buffer) {
+  return createHash("sha1").update(buffer).digest("hex");
 }
 
 export async function readUtf8(filePath) {

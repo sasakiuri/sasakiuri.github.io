@@ -1,20 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { siteContract } from "@/config/site";
+
 import "./slithy.css";
 
-const siteUrl = "https://slithy.net";
+const { root } = siteContract.routes;
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: "/",
+    canonical: root.path,
   },
-  description: "SLITHY.NET explains the meaning of “slithy”—a word with two meanings packed into one.",
+  description: root.description,
   icons: {
     icon: [{ sizes: "16x16", type: "image/x-icon", url: "/favicon.ico" }],
   },
-  metadataBase: new URL(siteUrl),
-  title: "SLITHY.NET",
+  metadataBase: new URL(siteContract.origin),
+  title: root.title,
 };
 
 export const viewport: Viewport = {
@@ -29,7 +31,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang={root.language}>
       <body>{children}</body>
     </html>
   );

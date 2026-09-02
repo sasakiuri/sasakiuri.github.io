@@ -1,7 +1,43 @@
 import { expect, test } from "@playwright/test";
 
 test("publishes installable app assets and structured profile data", async ({ page, request }) => {
+  await page.addInitScript(() => {
+    const calls: Array<{ scope: string | null; scriptUrl: string; updateViaCache: string | null }> = [];
+    const container = navigator.serviceWorker;
+    const register = container.register.bind(container);
+    Object.defineProperty(container, "register", {
+      configurable: true,
+      value: (scriptUrl: string | URL, options?: RegistrationOptions) => {
+        calls.push({
+          scope: options?.scope ?? null,
+          scriptUrl: String(scriptUrl),
+          updateViaCache: options?.updateViaCache ?? null,
+        });
+        return register(scriptUrl, options);
+      },
+    });
+    Object.defineProperty(window, "__serviceWorkerRegistrationCalls", { value: calls });
+  });
   await page.goto("/sasakiuri/");
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          Reflect.get(window, "__serviceWorkerRegistrationCalls") as Array<{
+            scope: string | null;
+            scriptUrl: string;
+            updateViaCache: string | null;
+          }>,
+      ),
+    )
+    .toEqual([
+      {
+        scope: "/sasakiuri/",
+        scriptUrl: "/sasakiuri/sw.js",
+        updateViaCache: "none",
+      },
+    ]);
 
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", "/sasakiuri/apple-touch-icon.png");
 
@@ -12,6 +48,7 @@ test("publishes installable app assets and structured profile data", async ({ pa
       "@context": "https://schema.org",
       "@type": "ProfilePage",
       mainEntity: expect.objectContaining({
+        "@id": "https://slithy.net/sasakiuri/#person",
         "@type": "Person",
         name: "梶ヶ谷 宜之",
       }),
