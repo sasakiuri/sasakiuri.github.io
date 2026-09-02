@@ -37,6 +37,7 @@ test("renders the original content and metadata", async ({ page }) => {
   await expect(twitter).toHaveAttribute("href", "https://twitter.com/sasakiuri");
   await expect(twitter).toHaveAttribute("rel", "noreferrer noopener");
   await expect(twitter).toHaveAttribute("target", "_blank");
+  expect(await twitter.evaluate((link) => link.getBoundingClientRect().height)).toBeGreaterThanOrEqual(24);
 
   await expect(socials.getByRole("link", { name: "GitHub" })).toHaveCount(0);
 });

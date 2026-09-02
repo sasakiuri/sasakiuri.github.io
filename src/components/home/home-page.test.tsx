@@ -28,7 +28,7 @@ describe("HomePage", () => {
     expect(screen.queryByRole("heading", { name: "自己紹介" })).not.toBeInTheDocument();
     expect(screen.getByRole("region", { name: "文章" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "作ったもの" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "SNS" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "SNS" })).toHaveClass("social-links");
   });
 
   it("organizes the diary, work, and social links by purpose", () => {

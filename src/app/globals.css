@@ -15,6 +15,11 @@ body {
   font-size: 0.5em;
 }
 
+.social-links a {
+  display: inline-block;
+  min-height: 24px;
+}
+
 @media (width < 768px) {
   body {
     padding-right: 8px;
