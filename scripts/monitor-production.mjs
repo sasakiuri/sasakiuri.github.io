@@ -6,6 +6,7 @@ import { performance } from "node:perf_hooks";
 import { connect } from "node:tls";
 
 import { qualityGates } from "./lib/quality-gates.mjs";
+import { containsXUrl } from "./lib/url-policy.mjs";
 
 const projectRoot = path.resolve(import.meta.dirname, "..");
 const reportDirectory = path.join(projectRoot, "reports", "monitoring");
@@ -49,7 +50,7 @@ const checks = [
   endpointCheck("diary text archive", "/sasakuri/diary/archive.txt", "text/plain", (body) => {
     requireText(body, "ささきうりの日記");
     requireText(body, "ひさしぶりに弾作ろうとしたら");
-    if (body.includes("https://x.com")) {
+    if (containsXUrl(body)) {
       throw new TypeError("Diary text archive contains a source link.");
     }
   }),
@@ -57,12 +58,7 @@ const checks = [
     requireText(body, '<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ja">');
     const entries = body.match(/<entry>/gu)?.length ?? 0;
     const localEntry = body.match(/<id>(https:\/\/[^<]+\/sasakuri\/diary\/\d{4}\/#entry-\d+)<\/id>/u)?.[1];
-    if (
-      entries < 1 ||
-      entries > 50 ||
-      localEntry?.startsWith(`${siteUrl.origin}/`) !== true ||
-      body.includes("https://x.com")
-    ) {
+    if (entries < 1 || entries > 50 || localEntry?.startsWith(`${siteUrl.origin}/`) !== true || containsXUrl(body)) {
       throw new TypeError("Diary Atom feed contains an invalid entry set or a source link.");
     }
   }),
