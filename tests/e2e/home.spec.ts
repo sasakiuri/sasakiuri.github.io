@@ -17,6 +17,11 @@ test("renders the original content and metadata", async ({ page }) => {
   await expect(twitter).toHaveAttribute("href", "https://twitter.com/sasakiuri");
   await expect(twitter).toHaveAttribute("rel", "noreferrer noopener");
   await expect(twitter).toHaveAttribute("target", "_blank");
+
+  const github = page.getByRole("link", { name: "GitHub" });
+  await expect(github).toHaveAttribute("href", "https://github.com/sasakiuri");
+  await expect(github).toHaveAttribute("rel", "noreferrer noopener");
+  await expect(github).toHaveAttribute("target", "_blank");
 });
 
 test("has no automatically detectable accessibility violations", async ({ page }) => {

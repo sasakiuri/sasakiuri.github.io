@@ -35,6 +35,7 @@ const checks = [
   endpointCheck("personal page", "/sasakiuri/", "text/html", (body) => {
     requireText(body, "<title>梶ヶ谷 宜之 | ホームページ</title>");
     requireText(body, "ea98a6f9-e9a6-43ea-a6e3-464656155004.webp");
+    requireText(body, 'href="https://github.com/sasakiuri"');
     requireStrongContentSecurityPolicy(body);
   }),
   endpointCheck("web app manifest", "/sasakiuri/manifest.webmanifest", "application/manifest+json", (body) => {

@@ -64,6 +64,10 @@ const rawSiteConfig = {
       href: "https://www.facebook.com/nkajigaya1128",
       label: "Facebook",
     },
+    {
+      href: "https://github.com/sasakiuri",
+      label: "GitHub",
+    },
   ],
   title: "梶ヶ谷 宜之 | ホームページ",
   url: "https://slithy.net/sasakiuri/",
