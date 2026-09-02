@@ -29,7 +29,7 @@ describe("HomePage", () => {
     render(<HomePage />);
 
     const list = screen.getByRole("list");
-    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(list).getAllByRole("listitem")).toHaveLength(3);
     expect(within(list).getByRole("link", { name: "Twitter" })).toHaveAttribute(
       "href",
       "https://twitter.com/sasakiuri",
@@ -38,5 +38,6 @@ describe("HomePage", () => {
       "href",
       "https://www.facebook.com/nkajigaya1128",
     );
+    expect(within(list).getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/sasakiuri");
   });
 });
