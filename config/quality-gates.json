@@ -14,11 +14,14 @@
       ".nojekyll",
       ".well-known/security.txt",
       "404.html",
+      "favicon.ico",
       "index.html",
-      "manifest.webmanifest",
       "robots.txt",
+      "sasakiuri/index.html",
+      "sasakiuri/manifest.webmanifest",
+      "sasakiuri/sw.js",
       "sitemap.xml",
-      "sw.js"
+      "sasakiuri/favicon.ico"
     ]
   },
   "lighthouse": {

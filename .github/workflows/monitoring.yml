@@ -31,7 +31,7 @@ jobs:
       - name: Run production synthetic checks
         run: node scripts/monitor-production.mjs
         env:
-          SITE_URL: https://sasakiuri.github.io
+          SITE_URL: https://slithy.net
 
       - name: Upload monitoring evidence
         if: always()

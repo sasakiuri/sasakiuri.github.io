@@ -70,6 +70,7 @@ words:
   - Sigstore
   - sitemap
   - SLSA
+  - slithy
   - Stryker
   - Stylelint
   - subdependency
@@ -84,6 +85,7 @@ words:
   - TypeScript
   - Vitest
   - vercel
+  - Wayback
   - WebP
   - WCAG
   - Zod

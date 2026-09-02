@@ -2,7 +2,8 @@
 
 ## 目的
 
-元の 1 ページの表示をそのまま保ちつつ、フレームワーク更新、型安全性、回帰検知、継続的デプロイを独立して改善できる構成にすることが目的です。
+SLITHY.NET の旧トップページを復元し、既存の個人ページを `/sasakiuri/`
+で保ちつつ、フレームワーク更新、型安全性、回帰検知、継続的デプロイを独立して改善できる構成にすることが目的です。
 
 ## 実行モデル
 
@@ -15,16 +16,23 @@
 ## 境界
 
 ```text
-src/app/layout.tsx
+src/app/(slithy)/layout.tsx
+  └─ page.tsx ── restored SLITHY.NET
+
+src/app/(personal)/sasakiuri/layout.tsx
   ├─ StructuredData ── siteConfig
-  ├─ ServiceWorkerRegistration ── public/sw.js
+  ├─ ServiceWorkerRegistration ── public/sasakiuri/sw.js
   └─ page.tsx
        └─ HomePage
             ├─ siteConfig
             └─ ExternalLink
 ```
 
-siteConfig は文言、URL、画像寸法の唯一の定義元です。HomePage は表示だけを担当し、ExternalLink は外部遷移のセキュリティ属性を一元化します。
+複数の root
+layout により、英語の旧トップページと日本語の個人ページで文書言語、メタデータ、CSS を分離します。旧トップページは指定された Wayback
+Machine の HTML と favicon をローカルに復元し、実行時にはアーカイブへ接続しません。
+
+siteConfig は個人ページの文言、URL、画像寸法の唯一の定義元です。HomePage は表示だけを担当し、ExternalLink は外部遷移のセキュリティ属性を一元化します。
 
 `siteConfig` はビルド時に Zod の strict schema で検証します。HTTPS
 URL の schema は独立した境界として扱い、検証後に template literal
@@ -37,9 +45,9 @@ CSS Modules には隣接する型宣言を置き、`noPropertyAccessFromIndexSig
 - Metadata API と 1,200 × 630 px の静的 PNG により、canonical、Open Graph、Twitter Card を生成します。
 - JSON-LD は `ProfilePage` と `Person` を表し、strict なローカル設定だけから生成します。埋め込み前に `<` を Unicode
   escape へ変換します。
-- Web App Manifest は 192 px の通常アイコンと 512 px の maskable アイコンを公開します。
-- Service
-  Worker は同一オリジンの GET だけを扱います。ナビゲーションは network-first、画像、フォント、CSS、JavaScript は stale-while-revalidate です。
+- `/sasakiuri/` の Web App Manifest は 192 px の通常アイコンと 512 px の maskable アイコンを公開します。
+- Service Worker は `/sasakiuri/`
+  の scope で同一オリジンの GET だけを扱います。ナビゲーションは network-first、画像、フォント、CSS、JavaScript は stale-while-revalidate です。
 - ビルド後に静的成果物から content hash 付きの precache
   manifest を生成し、既存の HTML、CSS、JavaScript、フォント、画像を初回インストール時に保存します。
 - ビルド後の inline script を SHA-256 で列挙し、script に `unsafe-inline` を許可しない CSP meta を全 application
@@ -62,7 +70,7 @@ pnpm の `packageExtensions` で動的に読み込まれる TypeScript の peer 
 
 ## デザイン不変条件
 
-ビジュアル回帰テストの基準画像は、移行前の Next.js
+`/sasakiuri/` のビジュアル回帰テストの基準画像は、移行前の Next.js
 12 版から取得しています。PWA とメタデータを含む基盤更新後も基準画像は更新しません。次の値は既存表示との互換性のため意図的に維持しています。
 
 - コンテンツ領域: 最大 600 px、左右余白 32 px、中央寄せ
@@ -72,7 +80,9 @@ pnpm の `packageExtensions` で動的に読み込まれる TypeScript の peer 
 - 本文色: rgb(0 0 0 / 87%)
 - SNS リンク色: #1976d2
 
-390 × 844 と 1280 × 720 の Chromium スクリーンショットをピクセル単位で比較し、意図しない差分を CI で拒否します。
+390 × 844 と 1280 ×
+720 の Chromium スクリーンショットをピクセル単位で比較し、意図しない差分を CI で拒否します。ルートも 1280 ×
+720 の復元元画像とピクセル単位で比較し、見出し、引用文、日付、favicon、外部通信がないことを別のブラウザーテストでも固定します。
 
 ## 品質ゲート
 

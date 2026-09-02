@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://sasakiuri.github.io/schemas/quality-gates.schema.json",
+  "$id": "https://slithy.net/schemas/quality-gates.schema.json",
   "title": "Quality gates",
   "type": "object",
   "additionalProperties": false,

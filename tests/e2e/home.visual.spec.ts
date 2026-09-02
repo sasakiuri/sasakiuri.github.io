@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 async function waitForStablePage(page: Page) {
-  await page.goto("/");
+  await page.goto("/sasakiuri/");
   await page.evaluate(async () => document.fonts.ready);
 }
 

@@ -11,7 +11,7 @@ const projectRoot = path.resolve(import.meta.dirname, "..");
 const reportDirectory = path.join(projectRoot, "reports", "monitoring");
 const reportPath = path.join(reportDirectory, "synthetic.json");
 const junitPath = path.join(reportDirectory, "synthetic-junit.xml");
-const configuredUrl = process.env.SITE_URL ?? "https://sasakiuri.github.io";
+const configuredUrl = process.env.SITE_URL ?? "https://slithy.net";
 const siteUrl = new URL(configuredUrl);
 
 if (
@@ -27,17 +27,24 @@ if (
 
 const checks = [
   endpointCheck("home page", "/", "text/html", (body) => {
+    requireText(body, "<title>SLITHY.NET</title>");
+    requireText(body, "WHAT IS SLITHY?");
+    requireText(body, "/favicon.ico");
+    requireStrongContentSecurityPolicy(body);
+  }),
+  endpointCheck("personal page", "/sasakiuri/", "text/html", (body) => {
     requireText(body, "<title>梶ヶ谷 宜之 | ホームページ</title>");
     requireText(body, "ea98a6f9-e9a6-43ea-a6e3-464656155004.webp");
-    requireText(body, 'http-equiv="Content-Security-Policy"');
-    const scriptPolicy = body.match(/script-src ([^;]+)/u)?.[1] ?? "";
-    if (!scriptPolicy.includes("'sha256-") || scriptPolicy.includes("'unsafe-inline'")) {
-      throw new TypeError("Production Content Security Policy does not enforce inline script hashes.");
-    }
+    requireStrongContentSecurityPolicy(body);
   }),
-  endpointCheck("web app manifest", "/manifest.webmanifest", "application/manifest+json", (body) => {
+  endpointCheck("web app manifest", "/sasakiuri/manifest.webmanifest", "application/manifest+json", (body) => {
     const manifest = JSON.parse(body);
-    if (manifest.lang !== "ja" || manifest.start_url !== "/" || manifest.theme_color !== "#ffffff") {
+    if (
+      manifest.lang !== "ja" ||
+      manifest.scope !== "/sasakiuri/" ||
+      manifest.start_url !== "/sasakiuri/" ||
+      manifest.theme_color !== "#ffffff"
+    ) {
       throw new TypeError("Web app manifest does not match the production contract.");
     }
   }),
@@ -45,9 +52,10 @@ const checks = [
     requireText(body, `Sitemap: ${siteUrl.origin}/sitemap.xml`);
   }),
   endpointCheck("sitemap", "/sitemap.xml", "application/xml", (body) => {
-    requireText(body, `<loc>${siteUrl.origin}</loc>`);
+    requireText(body, `<loc>${siteUrl.origin}/</loc>`);
+    requireText(body, `<loc>${siteUrl.origin}/sasakiuri/</loc>`);
   }),
-  endpointCheck("service worker", "/sw.js", "application/javascript", (body) => {
+  endpointCheck("service worker", "/sasakiuri/sw.js", "application/javascript", (body) => {
     requireText(body, 'const cachePrefix = "sasakiuri-"');
     if (body.includes("__PRECACHE_VERSION__") || body.includes("__PRECACHE_URLS__")) {
       throw new TypeError("Production Service Worker contains build placeholders.");
@@ -221,6 +229,14 @@ function readCertificate(host, port) {
 function requireText(body, expected) {
   if (!body.includes(expected)) {
     throw new TypeError(`Response is missing expected production content: ${expected}`);
+  }
+}
+
+function requireStrongContentSecurityPolicy(body) {
+  requireText(body, 'http-equiv="Content-Security-Policy"');
+  const scriptPolicy = body.match(/script-src ([^;]+)/u)?.[1] ?? "";
+  if (!scriptPolicy.includes("'sha256-") || scriptPolicy.includes("'unsafe-inline'")) {
+    throw new TypeError("Production Content Security Policy does not enforce inline script hashes.");
   }
 }
 

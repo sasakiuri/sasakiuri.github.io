@@ -4,20 +4,23 @@
 
 | 項目             | 値                                     |
 | ---------------- | -------------------------------------- |
-| サービス         | `sasakiuri.github.io`                  |
+| サービス         | `slithy.net`                           |
 | 種別             | GitHub Pages 上の静的サイト            |
-| 本番 URL         | `https://sasakiuri.github.io`          |
+| 本番 URL         | `https://slithy.net`                   |
 | デプロイ元       | `1.x` ブランチ                         |
 | データ永続化     | なし                                   |
 | 利用者データ     | 収集しない                             |
 | 復旧単位         | 検証済み静的エクスポート               |
 | セキュリティ窓口 | GitHub Private Vulnerability Reporting |
 
+`/` は復元した SLITHY.NET、`/sasakiuri/` は個人ページです。個人ページの manifest と Service Worker も `/sasakiuri/`
+内に限定し、トップページを制御しません。
+
 ## SLI と SLO
 
 可用性の SLI は、6 時間ごとの合成監視で次をすべて満たした割合です。30 日の移動窓で 99% 以上を目標とします。
 
-- トップ、manifest、robots、sitemap、Service Worker、security.txt が HTTP 2xx を返す。
+- トップ、個人ページ、manifest、robots、sitemap、Service Worker、security.txt が HTTP 2xx を返す。
 - 各応答を 3,000 ms 以内に読み終える。
 - タイトル、画像、連絡先などの本番契約が応答内に存在する。
 - TLS 1.2 以上で証明書検証に成功し、有効期限が 14 日以上残っている。
@@ -29,6 +32,20 @@ ms 以下、CLS は 0.05 以下です。閾値は `config/quality-gates.json` �
 GitHub Actions の schedule は厳密な時刻を保証しないため、この SLO は利用者向けの金銭的 SLA ではなく、運用上の目標です。
 
 ## デプロイ
+
+GitHub Pages の `Custom domain` は `slithy.net` に設定します。このリポジトリは GitHub
+Actions から配信するため、成果物内の `CNAME` ではなく Pages のリポジトリ設定が定義元です。DNS は次の値へ向けます。
+
+| 種別  | 名前  | 値                    |
+| ----- | ----- | --------------------- |
+| A     | `@`   | `185.199.108.153`     |
+| A     | `@`   | `185.199.109.153`     |
+| A     | `@`   | `185.199.110.153`     |
+| A     | `@`   | `185.199.111.153`     |
+| CNAME | `www` | `sasakiuri.github.io` |
+
+GitHub アカウント側でドメインを検証してから DNS を切り替えます。DNS と Pages の検査が通り、証明書が発行された後に
+`Enforce HTTPS` を有効にします。
 
 ```mermaid
 flowchart LR

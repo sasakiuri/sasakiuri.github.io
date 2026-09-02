@@ -46,7 +46,7 @@ const rawSiteConfig = {
     image: {
       alt: "ハクビシン",
       height: 337.438,
-      src: "/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
+      src: "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
       width: 384,
     },
     label: "ハクビシン",
@@ -66,7 +66,7 @@ const rawSiteConfig = {
     },
   ],
   title: "梶ヶ谷 宜之 | ホームページ",
-  url: "https://sasakiuri.github.io",
+  url: "https://slithy.net/sasakiuri/",
 } as const satisfies SiteConfig;
 
 export const siteConfig: SiteConfig = siteConfigSchema.parse(rawSiteConfig);

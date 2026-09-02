@@ -5,7 +5,14 @@
 [![OpenSSF Scorecard](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml)
 [![Production monitoring](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/monitoring.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/monitoring.yml)
 
-梶ヶ谷宜之のホームページです。
+`slithy.net` の静的サイトです。
+
+- `/`: [2016 年 10 月 6 日の SLITHY.NET](https://web.archive.org/web/20161006024016/http://slithy.net/)
+  を復元したトップページ
+- `/sasakiuri/`: 梶ヶ谷宜之のホームページ
+
+トップページの favicon は、[2011 年 10 月 13 日のアーカイブ](https://web.archive.org/web/20111013212903/http://www.slithy.net/)
+に保存されているオリジナルを使用します。実行時に外部リソースは読み込みません。
 
 ## 必要な環境
 
@@ -18,7 +25,7 @@ pnpm install
 pnpm dev
 ```
 
-`http://localhost:3000` で確認できます。
+`http://localhost:3000/` と `http://localhost:3000/sasakiuri/` で確認できます。
 
 ## 主なコマンド
 
@@ -48,10 +55,10 @@ VS Code または GitHub Codespaces では `.devcontainer/devcontainer.json`
 
 ## 構成
 
-- `src/app`: App Router、構造化メタデータ、OG 画像、sitemap、robots、manifest、Service Worker 登録
+- `src/app`: ルートごとの App Router、構造化メタデータ、OG 画像、sitemap、robots、manifest、Service Worker 登録
 - `src/components`: 表示コンポーネントと Storybook Story
 - `src/config`: Zod で検証して深く凍結する表示内容と URL 境界
-- `public`: PWA アイコン、Service Worker、RFC 9116 の security.txt
+- `public`: SLITHY.NET の favicon、`/sasakiuri/` 用 PWA アイコンと Service Worker、RFC 9116 の security.txt
 - `tests/e2e`: ブラウザー、アクセシビリティ、SEO、PWA、性能、ビジュアル回帰テスト
 - `tools`: TypeScript 5.9 を必要とする解析ツールの隔離ワークスペース
 - `.github/workflows`: build-once CI、セキュリティ、SBOM、attestation、合成監視、GitHub Pages 配信

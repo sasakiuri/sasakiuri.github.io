@@ -90,7 +90,7 @@ await Promise.all(
 );
 await verifyCssResources(filePaths, relativePaths);
 
-const serviceWorker = await readUtf8(path.join(outputDirectory, "sw.js"));
+const serviceWorker = await readUtf8(path.join(outputDirectory, "sasakiuri", "sw.js"));
 if (serviceWorker.includes("__PRECACHE_VERSION__") || serviceWorker.includes("__PRECACHE_URLS__")) {
   throw new TypeError("Service Worker precache placeholders were not replaced.");
 }
