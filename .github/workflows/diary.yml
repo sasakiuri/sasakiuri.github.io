@@ -1,0 +1,144 @@
+name: Update diary
+
+on:
+  schedule:
+    # GitHub Actions schedules use UTC. This runs once daily at 00:23 JST.
+    - cron: "23 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: diary-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Archive public X posts
+    if: github.repository == 'sasakiuri/sasakiuri.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out deployment branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: 1.x
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch and merge public posts
+        run: pnpm diary:update
+
+      - name: Test the diary importer
+        run: >-
+          pnpm exec vitest run scripts/lib/diary-data.test.mjs scripts/lib/x-profile.test.mjs
+          src/components/diary/diary-page.test.tsx
+
+      - name: Detect archive changes
+        id: changes
+        run: |
+          if git diff --quiet -- src/content/diary.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish the updated archive through a pull request
+        if: steps.changes.outputs.changed == 'true'
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATE_BRANCH: automation/diary-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          checked_out_commit_sha="$(git rev-parse HEAD)"
+          base_commit_sha="$(gh api 'repos/sasakiuri/sasakiuri.github.io/git/ref/heads/1.x' --jq .object.sha)"
+          if [ "$checked_out_commit_sha" != "$base_commit_sha" ]; then
+            echo "The 1.x branch changed while this update was running." >&2
+            exit 1
+          fi
+
+          remote_blob_sha="$(gh api 'repos/sasakiuri/sasakiuri.github.io/contents/src/content/diary.json?ref=1.x' --jq .sha)"
+          gh api --method POST 'repos/sasakiuri/sasakiuri.github.io/git/refs' \
+            -f ref="refs/heads/$UPDATE_BRANCH" \
+            -f sha="$base_commit_sha" >/dev/null
+
+          cleanup_branch() {
+            gh api --method DELETE "repos/sasakiuri/sasakiuri.github.io/git/refs/heads/$UPDATE_BRANCH" \
+              >/dev/null 2>&1 || true
+          }
+          trap cleanup_branch EXIT
+
+          encoded_content="$(base64 -w 0 < src/content/diary.json)"
+          updated_commit_sha="$(
+            gh api --method PUT 'repos/sasakiuri/sasakiuri.github.io/contents/src/content/diary.json' \
+              -f message='chore(diary): update X archive' \
+              -f content="$encoded_content" \
+              -f sha="$remote_blob_sha" \
+              -f branch="$UPDATE_BRANCH" \
+              --jq .commit.sha
+          )"
+          if ! [[ "$updated_commit_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "GitHub returned an invalid commit SHA." >&2
+            exit 1
+          fi
+
+          pull_number="$(
+            gh api --method POST 'repos/sasakiuri/sasakiuri.github.io/pulls' \
+              -f title='chore(diary): update archive' \
+              -f head="$UPDATE_BRANCH" \
+              -f base='1.x' \
+              -f body='Automated diary archive update.' \
+              --jq .number
+          )"
+          if ! [[ "$pull_number" =~ ^[1-9][0-9]*$ ]]; then
+            echo "GitHub returned an invalid pull request number." >&2
+            exit 1
+          fi
+
+          mergeable='pending'
+          for _ in {1..10}; do
+            mergeable="$(
+              gh api "repos/sasakiuri/sasakiuri.github.io/pulls/$pull_number" --jq '.mergeable // "pending"'
+            )"
+            if [ "$mergeable" != 'pending' ]; then
+              break
+            fi
+            sleep 2
+          done
+          if [ "$mergeable" != 'true' ]; then
+            echo "Diary pull request #$pull_number is not mergeable." >&2
+            exit 1
+          fi
+
+          merge_result="$(
+            gh api --method PUT "repos/sasakiuri/sasakiuri.github.io/pulls/$pull_number/merge" \
+              -f merge_method='squash' \
+              -f commit_title='chore(diary): update archive' \
+              --jq '[.merged, .sha] | @tsv'
+          )"
+          IFS=$'\t' read -r merged merge_sha <<< "$merge_result"
+          if [ "$merged" != 'true' ] || ! [[ "$merge_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "GitHub did not merge diary pull request #$pull_number." >&2
+            exit 1
+          fi
+          echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Start verified deployment
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh api --method POST 'repos/sasakiuri/sasakiuri.github.io/dispatches' -f event_type='diary-updated'

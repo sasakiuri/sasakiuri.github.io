@@ -25,7 +25,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "bradlc.vscode-tailwindcss",
         "biomejs.biome",
         "esbenp.prettier-vscode",
         "github.vscode-github-actions",

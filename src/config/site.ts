@@ -41,6 +41,19 @@ const rootRouteSchema = z
   })
   .readonly();
 
+const diaryRouteSchema = z
+  .strictObject({
+    artifactPath: z.literal("sasakuri/diary/index.html"),
+    description: nonEmptyTextSchema,
+    language: z.literal("ja"),
+    path: z.literal("/sasakuri/diary/"),
+    socialMetadata: z.literal(false),
+    sourceUrl: safeExternalHttpsUrlSchema.refine((value) => value === "https://x.com/sasakiuri"),
+    title: nonEmptyTextSchema,
+    url: canonicalDirectoryUrlSchema,
+  })
+  .readonly();
+
 export const siteConfigSchema = z
   .strictObject({
     appleTouchIcon: linkIconSchema,
@@ -112,6 +125,7 @@ const siteContractObjectSchema = z.strictObject({
     .readonly(),
   routes: z
     .strictObject({
+      diary: diaryRouteSchema,
       personal: siteConfigSchema,
       root: rootRouteSchema,
     })
@@ -128,14 +142,16 @@ export type SiteContract = z.output<typeof siteContractSchema>;
 export type SiteConfig = z.output<typeof siteConfigSchema>;
 
 export const siteContract: SiteContract = siteContractSchema.parse(rawSiteContract);
+export const diaryConfig = siteContract.routes.diary;
 export const siteConfig: SiteConfig = siteContract.routes.personal;
 
 function validateRelationships(contract: SiteContractCandidate, context: z.RefinementCtx) {
   const { manifest, serviceWorker } = contract.pwa;
-  const { personal, root } = contract.routes;
+  const { diary, personal, root } = contract.routes;
 
   validateRoute(contract.origin, root, ["routes", "root"], context);
   validateRoute(contract.origin, personal, ["routes", "personal"], context);
+  validateRoute(contract.origin, diary, ["routes", "diary"], context);
 
   if (personal.path !== serviceWorker.scope || personal.path !== serviceWorker.navigationFallback) {
     addRelationshipIssue(

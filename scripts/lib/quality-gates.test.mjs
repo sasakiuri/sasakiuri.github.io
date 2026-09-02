@@ -4,7 +4,8 @@ import { qualityGates, validateQualityGates } from "./quality-gates.mjs";
 
 describe("quality gates", () => {
   it("loads the policy as deeply immutable data", () => {
-    expect(qualityGates.artifact.maximumBytes.total).toBeGreaterThan(0);
+    expect(qualityGates.artifact.maximumBytes.individualFile).toBe(307_200);
+    expect(qualityGates.artifact.maximumBytes.total).toBe(4_194_304);
     expect(Object.isFrozen(qualityGates)).toBe(true);
     expect(Object.isFrozen(qualityGates.artifact)).toBe(true);
     expect(Object.isFrozen(qualityGates.artifact.requiredPaths)).toBe(true);

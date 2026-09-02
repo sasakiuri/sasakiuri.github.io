@@ -8,19 +8,21 @@
 | 種別             | GitHub Pages 上の静的サイト            |
 | 本番 URL         | `https://slithy.net`                   |
 | デプロイ元       | `1.x` ブランチ                         |
-| データ永続化     | なし                                   |
+| データ永続化     | Git 管理の `src/content/diary.json`    |
 | 利用者データ     | 収集しない                             |
 | 復旧単位         | 検証済み静的エクスポート               |
 | セキュリティ窓口 | GitHub Private Vulnerability Reporting |
 
-`/` は復元した SLITHY.NET、`/sasakiuri/` は個人ページです。個人ページの manifest と Service Worker も `/sasakiuri/`
-内に限定し、トップページを制御しません。
+`/` は復元した SLITHY.NET、`/sasakiuri/` は個人ページ、`/sasakuri/diary/`
+は X の公開投稿を保存する日記です。個人ページの manifest と Service Worker は `/sasakiuri/`
+内に限定し、ほかのページを制御しません。
 
 ## SLI と SLO
 
 可用性の SLI は、6 時間ごとの合成監視で次をすべて満たした割合です。30 日の移動窓で 99% 以上を目標とします。
 
-- トップ、個人ページ、manifest、robots、sitemap、Service Worker、security.txt が HTTP 2xx を返す。
+- トップ、個人ページ、日記、日記検索インデックス、manifest、robots、sitemap、Service Worker、security.txt が HTTP
+  2xx を返す。
 - 各応答を 3,000 ms 以内に読み終える。
 - タイトル、画像、連絡先などの本番契約が応答内に存在する。
 - TLS 1.2 以上で証明書検証に成功し、有効期限が 14 日以上残っている。
@@ -96,6 +98,21 @@ gh attestation verify site-export.tar.gz -R sasakiuri/sasakiuri.github.io
 
 ## 定期作業
 
+- `Update diary`
+  で毎日00時23分（日本時間）に X の公開プロフィールを確認します。新しい投稿がある場合だけ Git に保存し、検証済み配信を開始します。
+- 日記更新が失敗しても公開済みデータは維持されます。X の HTML 構造変更が続く場合は抽出 fixture と selector を更新します。
+- 過去投稿を追加する場合は、README の「過去投稿を手動で取り込む」に従います。最初に `pnpm diary:import --dry-run`
+  で追加件数と更新件数を確認し、取り込み後に `pnpm build` とローカルプレビューを実行します。
+- 長い履歴は複数の書き出し JSON に分割できます。同じ投稿 ID の本文が書き出し間で異なる場合は自動選択せず、取り込みを中止します。
+- 日記トップは最新50件、履歴は年別ページとして静的生成します。個別ファイルの307,200
+  bytes上限を超えた年が生じた場合は、その年だけを月別ページへ分割し、上限自体は緩和しません。
+- 日記トップの検索は `search-index.json`
+  の全件を使います。取り込み後は、短い検索語候補の上下キー操作、検索件数、強調表示、曖昧な複数語、引用符・除外・`OR`
+  条件、年・期間の絞り込み、並び順、10・25・50・100件の表示切り替え、条件解除、前後のページ移動をローカルプレビューで確認します。条件を指定した URL の再読み込みと戻る・進むでも表示が復元されることを確認します。検索データを取得できない場合も最新50件と年別ページが維持され、再読み込み操作で復旧することを確認します。
+- `/sasakuri/diary/feed.xml`
+  が Atom として取得でき、最新50件以下、年別アーカイブへのリンク、取得元 URL を含まないことを確認します。
+- 年別ページの月別目次と各日記の固定リンク、本文・上部へのページ内リンクを確認します。`/sasakuri/diary/archive.txt` と
+  `search-index.json` を保存でき、全件数と最新本文を含み、取得元 URL を含まないことも確認します。
 - Dependabot の npm、GitHub Actions、Dev Container 更新を週次で確認します。
 - `Deep quality` で Mutation Testing と 2 回のクリーンビルド比較を週次実行します。
 - `Security` で CodeQL、OSV、Gitleaks、zizmor、ライセンス、SBOM を週次実行します。

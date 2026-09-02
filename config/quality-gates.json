@@ -4,11 +4,11 @@
     "maximumBytes": {
       "css": 32768,
       "fonts": 102400,
-      "html": 102400,
+      "html": 1310720,
       "images": 307200,
       "individualFile": 307200,
       "javascript": 716800,
-      "total": 1572864
+      "total": 4194304
     },
     "requiredPaths": [
       ".nojekyll",
@@ -17,6 +17,10 @@
       "favicon.ico",
       "index.html",
       "robots.txt",
+      "sasakuri/diary/archive.txt",
+      "sasakuri/diary/index.html",
+      "sasakuri/diary/feed.xml",
+      "sasakuri/diary/search-index.json",
       "sasakiuri/index.html",
       "sasakiuri/manifest.webmanifest",
       "sasakiuri/sw.js",

@@ -38,13 +38,41 @@ const checks = [
     requireText(body, 'href="https://github.com/sasakiuri"');
     requireStrongContentSecurityPolicy(body);
   }),
+  endpointCheck("diary", "/sasakuri/diary/", "text/html", (body) => {
+    requireText(body, "<title>ささきうりの日記</title>");
+    requireText(body, "ひさしぶりに弾作ろうとしたら");
+    requireStrongContentSecurityPolicy(body);
+  }),
+  endpointCheck("diary search index", "/sasakuri/diary/search-index.json", "application/json", (body) => {
+    validateDiarySearchIndex(JSON.parse(body));
+  }),
+  endpointCheck("diary text archive", "/sasakuri/diary/archive.txt", "text/plain", (body) => {
+    requireText(body, "ささきうりの日記");
+    requireText(body, "ひさしぶりに弾作ろうとしたら");
+    if (body.includes("https://x.com")) {
+      throw new TypeError("Diary text archive contains a source link.");
+    }
+  }),
+  endpointCheck("diary Atom feed", "/sasakuri/diary/feed.xml", "xml", (body) => {
+    requireText(body, '<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ja">');
+    const entries = body.match(/<entry>/gu)?.length ?? 0;
+    const localEntry = body.match(/<id>(https:\/\/[^<]+\/sasakuri\/diary\/\d{4}\/#entry-\d+)<\/id>/u)?.[1];
+    if (
+      entries < 1 ||
+      entries > 50 ||
+      localEntry?.startsWith(`${siteUrl.origin}/`) !== true ||
+      body.includes("https://x.com")
+    ) {
+      throw new TypeError("Diary Atom feed contains an invalid entry set or a source link.");
+    }
+  }),
   endpointCheck("web app manifest", "/sasakiuri/manifest.webmanifest", "application/manifest+json", (body) => {
     const manifest = JSON.parse(body);
     if (
       manifest.lang !== "ja" ||
       manifest.scope !== "/sasakiuri/" ||
       manifest.start_url !== "/sasakiuri/" ||
-      manifest.theme_color !== "#ffffff"
+      manifest.theme_color !== "#f0eee6"
     ) {
       throw new TypeError("Web app manifest does not match the production contract.");
     }
@@ -55,6 +83,7 @@ const checks = [
   endpointCheck("sitemap", "/sitemap.xml", "application/xml", (body) => {
     requireText(body, `<loc>${siteUrl.origin}/</loc>`);
     requireText(body, `<loc>${siteUrl.origin}/sasakiuri/</loc>`);
+    requireText(body, `<loc>${siteUrl.origin}/sasakuri/diary/</loc>`);
   }),
   endpointCheck("service worker", "/sasakiuri/sw.js", "application/javascript", (body) => {
     requireText(body, 'const cachePrefix = "sasakiuri-"');
@@ -238,6 +267,45 @@ function requireStrongContentSecurityPolicy(body) {
   const scriptPolicy = body.match(/script-src ([^;]+)/u)?.[1] ?? "";
   if (!scriptPolicy.includes("'sha256-") || scriptPolicy.includes("'unsafe-inline'")) {
     throw new TypeError("Production Content Security Policy does not enforce inline script hashes.");
+  }
+}
+
+function validateDiarySearchIndex(index) {
+  if (
+    typeof index !== "object" ||
+    index === null ||
+    Array.isArray(index) ||
+    Object.keys(index).sort().join(",") !== "posts,version" ||
+    index.version !== 1 ||
+    !Array.isArray(index.posts) ||
+    index.posts.length < 1 ||
+    index.posts.length > 5_000
+  ) {
+    throw new TypeError("Diary search index does not match the production contract.");
+  }
+
+  let previousId;
+  const ids = new Set();
+  for (const post of index.posts) {
+    if (
+      typeof post !== "object" ||
+      post === null ||
+      Array.isArray(post) ||
+      Object.keys(post).sort().join(",") !== "id,publishedAt,text" ||
+      typeof post.id !== "string" ||
+      !/^[1-9]\d{5,24}$/u.test(post.id) ||
+      typeof post.publishedAt !== "string" ||
+      new Date(post.publishedAt).toISOString() !== post.publishedAt ||
+      typeof post.text !== "string" ||
+      post.text.trim() !== post.text ||
+      post.text === "" ||
+      ids.has(post.id) ||
+      (previousId !== undefined && BigInt(previousId) <= BigInt(post.id))
+    ) {
+      throw new TypeError("Diary search index contains an invalid post.");
+    }
+    ids.add(post.id);
+    previousId = post.id;
   }
 }
 

@@ -8,10 +8,12 @@ import { createPrecacheManifest } from "./service-worker-manifest.mjs";
 import { publicPathToArtifactPath, siteContract, sortOrdinal } from "./site-contract.mjs";
 import { readUtf8 } from "./static-export.mjs";
 
+const contractedRoutes = [siteContract.routes.root, siteContract.routes.personal, siteContract.routes.diary];
+
 export async function verifyPublicationContract({ availablePaths, fileShaByPath, initialEdges = [], outputDirectory }) {
   const edges = [...initialEdges];
   const documents = new Map();
-  const routes = [siteContract.routes.root, siteContract.routes.personal];
+  const routes = contractedRoutes;
   const routeEvidence = [];
 
   for (const route of routes) {
@@ -295,13 +297,13 @@ async function verifyDiscovery({ availablePaths, edges, fileShaByPath, outputDir
     readUtf8(path.join(outputDirectory, robotsArtifactPath)),
     readUtf8(path.join(outputDirectory, sitemapArtifactPath)),
   ]);
-  const expectedUrls = [siteContract.routes.root.url, siteContract.routes.personal.url];
+  const expectedUrls = contractedRoutes.map(({ url }) => url);
   const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)].map((match) => match[1]);
   assertDeepEqual(sitemapUrls, expectedUrls, "sitemap canonical URL set");
   const expectedSitemapUrl = new URL(`/${sitemapArtifactPath}`, `${siteContract.origin}/`).href;
   const expectedRobots = `User-Agent: *\nAllow: /\n\nSitemap: ${expectedSitemapUrl}`;
   assertEqual(robots.replaceAll("\r\n", "\n").trim(), expectedRobots, "robots.txt contract");
-  for (const route of [siteContract.routes.root, siteContract.routes.personal]) {
+  for (const route of contractedRoutes) {
     edges.push({ kind: "sitemap-route", owner: sitemapArtifactPath, target: route.artifactPath });
   }
   edges.push({ kind: "robots-sitemap", owner: robotsArtifactPath, target: sitemapArtifactPath });
@@ -417,8 +419,10 @@ function extractJsonConstant(source, name) {
 }
 
 function expectedExternalLinks(route) {
-  if (route !== siteContract.routes.personal) return [];
-  return [route.hero.sourceUrl, ...route.socials.map(({ href }) => href)];
+  if (route === siteContract.routes.personal) {
+    return [route.hero.sourceUrl, ...route.socials.map(({ href }) => href)];
+  }
+  return [];
 }
 
 function assertAvailable(artifactPath, availablePaths, label) {

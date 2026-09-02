@@ -12,6 +12,7 @@ ignorePaths:
   - pnpm-lock.yaml
   - public/**/*.{ico,webp}
   - reports/**
+  - src/content/diary.json
   - src/app/fonts/**
   - storybook-static/**
   - stryker/**
@@ -54,6 +55,7 @@ words:
   - lint-staged
   - nkajigaya
   - networkidle
+  - NFKC
   - NOASSERTION
   - nojekyll
   - domcontentloaded
@@ -62,17 +64,20 @@ words:
   - noopener
   - noreferrer
   - opengraph
+  - parsererror
   - Playwright
   - pipx
   - postcss
   - pyspdxtools
   - quasis
+  - reposts
   - ossf
   - rhysd
   - rseidelsohn
   - SASAKI
   - sasakiuri
   - sarif
+  - sasakuri
   - Sigstore
   - sitemap
   - SLSA
@@ -89,6 +94,7 @@ words:
   - textlintrc
   - tsconfck
   - Turbopack
+  - twimg
   - TypeScript
   - Vitest
   - vercel
@@ -99,6 +105,8 @@ words:
   - zizmor
   - zricethezav
   - unrs
+  - unstub
+  - nums
 ignoreRegExpList:
   - /#[0-9a-fA-F]{3,8}/
   - /GHSA-[a-z0-9-]+/

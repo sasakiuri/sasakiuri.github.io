@@ -11,6 +11,7 @@ import {
 describe("site publication contract", () => {
   it("loads immutable, cross-validated publication data", () => {
     expect(siteContract.routes.personal.url).toBe("https://slithy.net/sasakiuri/");
+    expect(siteContract.routes.diary.url).toBe("https://slithy.net/sasakuri/diary/");
     expect(Object.isFrozen(siteContract)).toBe(true);
     expect(Object.isFrozen(siteContract.routes.personal.socials)).toBe(true);
     expect(Object.isFrozen(siteContract.pwa.manifest.icons[0])).toBe(true);

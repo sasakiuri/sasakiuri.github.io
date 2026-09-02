@@ -1,46 +1,63 @@
-import Image from "next/image";
-
 import { ExternalLink } from "@/components/external-link/external-link";
 import { siteConfig } from "@/config/site";
 
-import styles from "./home-page.module.css";
-
 export function HomePage() {
   const { hero, pageHeading, socials } = siteConfig;
+  const workProfiles = socials.filter((social) => social.label === "GitHub");
+  const socialProfiles = socials.filter((social) => social.label !== "GitHub");
 
   return (
-    <div className={styles.container}>
-      <main>
-        <h1 className="block text-2xl font-bold">{pageHeading}</h1>
-
-        <ExternalLink className={styles.heroLink} href={hero.sourceUrl}>
-          <Image
-            alt={hero.image.alt}
-            className="my2 h-auto max-w-sm"
-            height={hero.image.height}
-            preload
-            src={hero.image.src}
-            unoptimized
-            width={hero.image.width}
-          />
-          <ruby className="my-2 block text-4xl font-bold italic">
+    <main>
+      <header>
+        <h1>{pageHeading}</h1>
+        <p>
+          <ExternalLink href={hero.sourceUrl}>
+            {/* biome-ignore lint/performance/noImgElement: A plain image preserves the requested browser-default rendering. */}
+            <img alt={hero.image.alt} height={hero.image.height} src={hero.image.src} width={hero.image.width} />
+          </ExternalLink>
+        </p>
+        <p>
+          <ruby>
             {hero.label}
             <rp>（</rp>
             <rt>{hero.annotation}</rt>
             <rp>）</rp>
           </ruby>
-        </ExternalLink>
+        </p>
+      </header>
 
-        <ul className="my-2">
-          {socials.map((social) => (
+      <hr />
+
+      <section aria-labelledby="writing-heading">
+        <h2 id="writing-heading">文章</h2>
+        <p>
+          <a href="/sasakuri/diary/">日記</a>
+        </p>
+      </section>
+
+      <hr />
+
+      <section aria-labelledby="works-heading">
+        <h2 id="works-heading">作ったもの</h2>
+        {workProfiles.map((profile) => (
+          <p key={profile.href}>
+            <ExternalLink href={profile.href}>{profile.label}</ExternalLink>
+          </p>
+        ))}
+      </section>
+
+      <hr />
+
+      <nav aria-labelledby="socials-heading">
+        <h2 id="socials-heading">SNS</h2>
+        <ul>
+          {socialProfiles.map((social) => (
             <li key={social.href}>
-              <ExternalLink className={styles.socialLink} href={social.href}>
-                {social.label}
-              </ExternalLink>
+              <ExternalLink href={social.href}>{social.label}</ExternalLink>
             </li>
           ))}
         </ul>
-      </main>
-    </div>
+      </nav>
+    </main>
   );
 }

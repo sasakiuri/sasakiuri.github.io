@@ -7,7 +7,7 @@
   "origin": "https://slithy.net",
   "pwa": {
     "manifest": {
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#f0eee6",
       "categories": ["personalization", "productivity"],
       "display": "standalone",
       "icons": [
@@ -27,7 +27,7 @@
       "orientation": "any",
       "publicPath": "/sasakiuri/manifest.webmanifest",
       "shortName": "梶ヶ谷 宜之",
-      "themeColor": "#ffffff"
+      "themeColor": "#f0eee6"
     },
     "serviceWorker": {
       "additionalPrecachePaths": ["/sasakiuri/icon.svg"],
@@ -38,6 +38,16 @@
     }
   },
   "routes": {
+    "diary": {
+      "artifactPath": "sasakuri/diary/index.html",
+      "description": "ささきうりの日記です。",
+      "language": "ja",
+      "path": "/sasakuri/diary/",
+      "socialMetadata": false,
+      "sourceUrl": "https://x.com/sasakiuri",
+      "title": "ささきうりの日記",
+      "url": "https://slithy.net/sasakuri/diary/"
+    },
     "personal": {
       "appleTouchIcon": {
         "sizes": "180x180",
@@ -55,9 +65,9 @@
         "annotation": "アライグマ",
         "image": {
           "alt": "ハクビシン",
-          "height": 337.438,
+          "height": 264,
           "src": "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
-          "width": 384
+          "width": 300
         },
         "label": "ハクビシン",
         "sourceUrl": "https://www.irasutoya.com/2014/12/blog-post_964.html"
@@ -75,16 +85,16 @@
       "socialMetadata": true,
       "socials": [
         {
+          "href": "https://github.com/sasakiuri",
+          "label": "GitHub"
+        },
+        {
           "href": "https://twitter.com/sasakiuri",
           "label": "Twitter"
         },
         {
           "href": "https://www.facebook.com/nkajigaya1128",
           "label": "Facebook"
-        },
-        {
-          "href": "https://github.com/sasakiuri",
-          "label": "GitHub"
         }
       ],
       "title": "梶ヶ谷 宜之 | ホームページ"

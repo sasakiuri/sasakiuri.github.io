@@ -76,8 +76,9 @@
     "routes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["personal", "root"],
+      "required": ["diary", "personal", "root"],
       "properties": {
+        "diary": { "$ref": "#/$defs/diaryRoute" },
         "personal": { "$ref": "#/$defs/personalRoute" },
         "root": { "$ref": "#/$defs/rootRoute" }
       }
@@ -94,6 +95,21 @@
     "directoryPath": {
       "type": "string",
       "pattern": "^/(?:(?!\\.{1,2}(?:/|$))[A-Za-z0-9._~-]+/)*$"
+    },
+    "diaryRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactPath", "description", "language", "path", "socialMetadata", "sourceUrl", "title", "url"],
+      "properties": {
+        "artifactPath": { "const": "sasakuri/diary/index.html" },
+        "description": { "$ref": "#/$defs/nonEmptyText" },
+        "language": { "const": "ja" },
+        "path": { "const": "/sasakuri/diary/" },
+        "socialMetadata": { "const": false },
+        "sourceUrl": { "const": "https://x.com/sasakiuri" },
+        "title": { "$ref": "#/$defs/nonEmptyText" },
+        "url": { "$ref": "#/$defs/httpsUrl" }
+      }
     },
     "httpsUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
     "image": {
