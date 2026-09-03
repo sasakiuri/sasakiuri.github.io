@@ -13,6 +13,7 @@ test("renders the original content and metadata", async ({ page }) => {
     "/sasakiuri/ea98a6f9-e9a6-43ea-a6e3-464656155004.webp",
   );
   const heroLabel = page.locator("ruby.hero-label");
+  await expect(heroLabel.locator("rt")).toHaveText("ARAIGUMA");
   await expect(heroLabel).toHaveCSS("font-size", "48px");
   await expect(heroLabel).toHaveCSS("font-weight", "700");
   await expect(heroLabel.locator("rt")).toHaveCSS("font-size", "24px");
