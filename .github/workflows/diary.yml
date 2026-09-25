@@ -12,8 +12,7 @@ on:
         default: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: diary-update
@@ -68,6 +67,9 @@ jobs:
   update:
     name: Archive public X posts
     if: github.repository == 'sasakiuri/sasakiuri.github.io' && inputs.diagnose != true
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
