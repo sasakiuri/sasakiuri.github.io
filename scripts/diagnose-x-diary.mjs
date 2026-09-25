@@ -4,7 +4,7 @@ import { parseArgs } from "node:util";
 
 import { chromium } from "@playwright/test";
 
-import { diarySource } from "./lib/diary-data.mjs";
+import { createDiaryPost, diarySource } from "./lib/diary-data.mjs";
 import { extractXProfilePosts } from "./lib/x-profile.mjs";
 
 // Use the updater's request headers so the runner comparison changes only its environment.
@@ -18,7 +18,9 @@ const targets = [
   `https://twitter.com/${diarySource.username}`,
   `https://syndication.twitter.com/srv/timeline-profile/screen-name/${diarySource.username}`,
 ];
-const { values } = parseArgs({ options: { transport: { type: "string", default: "all" } } });
+const { values } = parseArgs({
+  options: { headed: { type: "boolean", default: false }, transport: { type: "string", default: "all" } },
+});
 const transport = values.transport;
 if (!["all", "fetch", "chromium"].includes(transport)) {
   throw new TypeError("Use --transport all, fetch, or chromium.");
@@ -42,11 +44,12 @@ for (const url of transport === "chromium" ? [] : targets) {
   }
 }
 
+if (transport !== "chromium") await inspectFxTimeline();
 if (transport !== "fetch") await inspectBrowser();
 process.stdout.write("Diagnostic completed; inspect each result. No archive was written or published.\n");
 
 async function inspectBrowser() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ headless: !values.headed });
   try {
     const page = await browser.newPage({ locale: "ja-JP" });
     const documentStatuses = [];
@@ -64,7 +67,7 @@ async function inspectBrowser() {
       renderError = error.message;
     }
     report({
-      transport: "chromium",
+      transport: values.headed ? "chromium-headed" : "chromium",
       requestedUrl: diarySource.profileUrl,
       finalUrl: withoutQuery(page.url()),
       initialStatus: response?.status(),
@@ -76,7 +79,11 @@ async function inspectBrowser() {
       ...inspectHtml(await page.content()),
     });
   } catch (error) {
-    report({ transport: "chromium", requestedUrl: diarySource.profileUrl, error: error.message });
+    report({
+      transport: values.headed ? "chromium-headed" : "chromium",
+      requestedUrl: diarySource.profileUrl,
+      error: error.message,
+    });
   } finally {
     await browser.close();
   }
@@ -92,6 +99,31 @@ function inspectHtml(html) {
   } catch (error) {
     // A widget or client-rendered page may need a different parser even when access succeeds.
     return { bytes, extractionError: error.message };
+  }
+}
+
+async function inspectFxTimeline() {
+  const requestedUrl = `https://api.fxtwitter.com/2/profile/${diarySource.username}/statuses?count=20`;
+  try {
+    const response = await fetch(requestedUrl, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) throw new TypeError(`FxEmbed returned HTTP ${response.status}.`);
+    const body = await response.json();
+    if (body.code !== 200 || !Array.isArray(body.results)) throw new TypeError("Unexpected FxEmbed timeline.");
+    const authored = body.results.filter(
+      (post) => post.author?.screen_name?.toLowerCase() === diarySource.username && post.type === "status",
+    );
+    const posts = authored.map((post) => {
+      if (post.author.id !== "897820919749500928") throw new TypeError("Unexpected author ID.");
+      const { id, publishedAt } = createDiaryPost(post);
+      return { id, publishedAt };
+    });
+    if (posts.length === 0) throw new TypeError("FxEmbed returned no authored posts.");
+    report({ transport: "FxEmbed", requestedUrl, status: response.status, posts });
+  } catch (error) {
+    report({ transport: "FxEmbed", requestedUrl, error: error.message });
   }
 }
 
