@@ -56,8 +56,14 @@ jobs:
         timeout-minutes: 4
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Check browser access after rendering
-        run: node scripts/diagnose-x-diary.mjs --transport chromium
+      - name: Check headed browser access after rendering
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = 'Linux' ]; then
+            xvfb-run -a node scripts/diagnose-x-diary.mjs --transport chromium --headed
+          else
+            node scripts/diagnose-x-diary.mjs --transport chromium --headed
+          fi
 
   update:
     name: Archive public X posts
