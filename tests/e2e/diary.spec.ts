@@ -29,7 +29,13 @@ test("publishes the archived entries as a static diary", async ({ page, request 
   await expect(page).toHaveTitle("ささきうりの日記");
   await expect(page.getByRole("heading", { level: 1, name: "日記" })).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(Math.min(latestDiaryPostCount, diaryData.posts.length));
-  await expect(page.getByText("ひさしぶりに弾作ろうとしたらタンブラーの中身を全部床にぶちまけた")).toBeVisible();
+  const latestPost = diaryData.posts[0];
+  if (latestPost === undefined) throw new TypeError("The diary archive must not be empty.");
+  const latestArticle = page.getByRole("article").first();
+  await expect(latestArticle.locator("time")).toHaveAttribute("datetime", latestPost.publishedAt);
+  for (const line of latestPost.text.split("\n").filter((line) => line.trim() !== "")) {
+    await expect(latestArticle).toContainText(line);
+  }
   await expect(page.getByRole("navigation", { name: "年別の日記" }).getByRole("link")).toHaveCount(
     diaryArchiveYears.length,
   );

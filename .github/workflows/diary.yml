@@ -94,8 +94,8 @@ jobs:
 
       - name: Test the diary importer
         run: >-
-          pnpm exec vitest run scripts/lib/diary-data.test.mjs scripts/lib/x-profile.test.mjs
-          src/components/diary/diary-page.test.tsx
+          pnpm exec vitest run scripts/lib/diary-data.test.mjs scripts/lib/x-timeline.test.mjs
+          scripts/update-diary.test.mjs src/components/diary/diary-page.test.tsx
 
       - name: Detect archive changes
         id: changes
@@ -131,11 +131,13 @@ jobs:
           }
           trap cleanup_branch EXIT
 
-          encoded_content="$(base64 -w 0 < src/content/diary.json)"
+          encoded_content_path="$RUNNER_TEMP/diary-content.base64"
+          node -e 'process.stdout.write(require("node:fs").readFileSync("src/content/diary.json").toString("base64"))' \
+            > "$encoded_content_path"
           updated_commit_sha="$(
             gh api --method PUT 'repos/sasakiuri/sasakiuri.github.io/contents/src/content/diary.json' \
               -f message='chore(diary): update X archive' \
-              -f content="$encoded_content" \
+              -F content=@"$encoded_content_path" \
               -f sha="$remote_blob_sha" \
               -f branch="$UPDATE_BRANCH" \
               --jq .commit.sha

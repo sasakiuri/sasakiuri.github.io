@@ -29,20 +29,20 @@ boundary です。
 
 ## STRIDE 分析
 
-| 脅威                   | 例                                                   | 主な対策                                                                 |
-| ---------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| Spoofing               | 偽の配布元や証明書でサイトを装う                     | HTTPS 強制、TLS 合成監視、canonical URL、Sigstore ベースの attestation   |
-| Tampering              | build 後に HTML、chunk、契約証跡を差し替える         | build-once promotion、tree／evidence seal、artifact digest、provenance   |
-| Repudiation            | 誰が何を配信したか追跡できない                       | Git history、environment deployment、OIDC attestation、90 日の証跡保存   |
-| Information disclosure | secret や source map を静的成果物へ混入する          | topology 契約、拡張子拒否、Gitleaks、secret pattern、公開前の検査        |
-| Denial of service      | Pages 障害、巨大 asset、壊れた cache                 | 配信量予算、content hash cache、合成監視、再現可能な rollback            |
-| Elevation of privilege | 悪意ある Action や install script が権限を取得する   | 最小権限、commit SHA pin、zizmor、allowBuilds、trust policy、CodeQL      |
-| Cross-site scripting   | inline script または依存 chunk を注入する            | hash-based CSP、JSON-LD escaping、外部実行 resource 禁止、React escaping |
-| Reverse tabnabbing     | 外部リンク先から元ページを操作する                   | `noopener noreferrer` を型付き `ExternalLink` で強制                     |
-| Dependency confusion   | registry や transitive URL から別 package を取得する | pnpm lockfile、exact version、exotic subdependency 拒否、OSV、Dependabot |
-| Untrusted diary input  | X の HTML や手動 JSON から不正な markup を保存する   | DOM 限定収集、固定 profile、strict JSON、ID／URL 再構成、React escaping  |
-| Search index tampering | 欠落や異形式の検索データで誤った内容を表示する       | 同一 origin、固定 path、strict field／件数／順序検証、CSP、成果物 seal   |
-| Stale offline content  | Service Worker が脆弱な旧成果物を保持する            | content hash cache、activate 時の旧 cache 削除、network-first navigation |
+| 脅威                   | 例                                                   | 主な対策                                                                         |
+| ---------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Spoofing               | 偽の配布元や証明書でサイトを装う                     | HTTPS 強制、TLS 合成監視、canonical URL、Sigstore ベースの attestation           |
+| Tampering              | build 後に HTML、chunk、契約証跡を差し替える         | build-once promotion、tree／evidence seal、artifact digest、provenance           |
+| Repudiation            | 誰が何を配信したか追跡できない                       | Git history、environment deployment、OIDC attestation、90 日の証跡保存           |
+| Information disclosure | secret や source map を静的成果物へ混入する          | topology 契約、拡張子拒否、Gitleaks、secret pattern、公開前の検査                |
+| Denial of service      | Pages 障害、巨大 asset、壊れた cache                 | 配信量予算、content hash cache、合成監視、再現可能な rollback                    |
+| Elevation of privilege | 悪意ある Action や install script が権限を取得する   | 最小権限、commit SHA pin、zizmor、allowBuilds、trust policy、CodeQL              |
+| Cross-site scripting   | inline script または依存 chunk を注入する            | hash-based CSP、JSON-LD escaping、外部実行 resource 禁止、React escaping         |
+| Reverse tabnabbing     | 外部リンク先から元ページを操作する                   | `noopener noreferrer` を型付き `ExternalLink` で強制                             |
+| Dependency confusion   | registry や transitive URL から別 package を取得する | pnpm lockfile、exact version、exotic subdependency 拒否、OSV、Dependabot         |
+| Untrusted diary input  | 外部 API や手動 JSON から不正な markup を保存する    | 投稿者 ID／名前／日時検証、DOM 限定収集、strict JSON、URL 再構成、React escaping |
+| Search index tampering | 欠落や異形式の検索データで誤った内容を表示する       | 同一 origin、固定 path、strict field／件数／順序検証、CSP、成果物 seal           |
+| Stale offline content  | Service Worker が脆弱な旧成果物を保持する            | content hash cache、activate 時の旧 cache 削除、network-first navigation         |
 
 ## Supply chain control
 
@@ -57,6 +57,8 @@ boundary です。
   evidence、attestation 対象 SBOM を照合します。
 
 ## 残余リスク
+
+日記の定期取得は X とは別の運営者である FxEmbed の公開 API に依存します。認証情報は送信しませんが、公開アカウント名と投稿の取得要求は同サービスへ送られます。ID と日時の整合性検証だけでは本文の改変や投稿の欠落を証明できません。サービスの停止・仕様変更・取得制限時は更新を失敗として扱い、既存データを維持します。保存済みの投稿より古い欠落は、定期取得の範囲外になる場合があります。
 
 GitHub Pages では repository 単位の任意 HTTP response
 header を設定できません。このため CSP は HTML の先頭に meta として入り、
