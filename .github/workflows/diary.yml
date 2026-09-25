@@ -179,7 +179,7 @@ jobs:
 
           merge_result="$(
             gh api --method PUT "repos/sasakiuri/sasakiuri.github.io/pulls/$pull_number/merge" \
-              -f merge_method='squash' \
+              -f merge_method='rebase' \
               -f commit_title='chore(diary): update archive' \
               --jq '[.merged, .sha] | @tsv'
           )"
