@@ -5,6 +5,11 @@ on:
     # GitHub Actions schedules use UTC. This runs once daily at 00:23 JST.
     - cron: "23 15 * * *"
   workflow_dispatch:
+    inputs:
+      diagnose:
+        description: Compare public X access without updating or publishing the archive
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -15,9 +20,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  diagnose:
+    name: Diagnose public X access (${{ matrix.os }})
+    if: github.repository == 'sasakiuri/sasakiuri.github.io' && inputs.diagnose == true
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Check out diagnostic revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Compare fetch and browser access
+        run: node scripts/diagnose-x-diary.mjs
+
   update:
     name: Archive public X posts
-    if: github.repository == 'sasakiuri/sasakiuri.github.io'
+    if: github.repository == 'sasakiuri/sasakiuri.github.io' && inputs.diagnose != true
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
