@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { diaryData } from "@/content/diary";
+import type { DiaryPost } from "@/content/diary-archive";
 
 import { DiaryPage } from "./diary-page";
 
@@ -11,7 +12,21 @@ describe("DiaryPage", () => {
       "fetch",
       vi.fn(() => new Promise(() => {})),
     );
-    const posts = [diaryData.posts[0], diaryData.posts[4]].filter((post) => post !== undefined);
+    // Keep formatting assertions independent of new posts added by diary:update.
+    const posts: readonly DiaryPost[] = [
+      {
+        id: "2093251072781590942",
+        publishedAt: "2026-08-28T08:15:21.132Z",
+        text: "ひさしぶりに弾作ろうとしたらタンブラーの中身を全部床にぶちまけた\n誰もお前を愛さない",
+        url: "https://x.com/sasakiuri/status/2093251072781590942",
+      },
+      {
+        id: "2092877356218343626",
+        publishedAt: "2026-08-27T07:30:20.160Z",
+        text: "前の日の日記",
+        url: "https://x.com/sasakiuri/status/2092877356218343626",
+      },
+    ];
     render(<DiaryPage posts={posts} totalPosts={954} years={["2026", "2025"]} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "日記" })).toBeInTheDocument();

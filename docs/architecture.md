@@ -12,7 +12,8 @@ SLITHY.NET の旧トップページを復元し、既存の個人ページを `/
 - Next.js App Router の React Server Components を既定とします。
 - output: export により、GitHub Pages に置ける静的ファイルだけを生成します。
 - GitHub
-  Actions が毎日00時23分（日本時間）に X の公開プロフィール HTML を取得します。本人の投稿を検証済み JSON へ追記し、変更時だけ配信します。
+  Actions が毎日00時23分（日本時間）に FxEmbed の公開 API から X の投稿を取得します。本人の投稿を検証済み JSON へ統合し、変更時だけ配信します。API
+  key や X の認証情報は不要です。
 - 初回の過去投稿は、ログイン済みブラウザーで描画された DOM から投稿 ID と本文だけを JSON に書き出します。ローカルの取り込み処理が厳格に検証し、定期取得と同じ日記データへ統合します。
 - 基本表示は React Server Components で生成します。日記トップだけは、全件検索とページ送りのための Client
   Component で段階的に拡張します。JavaScriptがない場合も、最新50件と年別アーカイブを読めます。
@@ -49,6 +50,7 @@ src/app/(diary)/sasakuri/diary/feed.xml/route.ts
 
 scripts/browser/export-x-diary.js ── rendered DOM → sanitized JSON
 scripts/import-diary-browser-export.mjs ── sanitized JSON → src/content/diary.json
+scripts/update-diary.mjs ── FxEmbed timeline → validated posts → src/content/diary.json
 ```
 
 複数の root
@@ -59,6 +61,8 @@ Machine の HTML と favicon をローカルに復元し、実行時にはアー
 はその個人ページ部分を型付きで投影します。HomePage は表示だけを担当し、ExternalLink は外部遷移のセキュリティ属性を一元化します。日記データは
 `src/content/diary.json` に保存します。X の snowflake
 ID から投稿時刻を決定的に復元し、ID 重複、URL、時刻、並び順を更新時と build 時の両方で検証します。ブラウザーの書き出しは固定アカウント、形式 version、生成日時、投稿数、未知のフィールドを取り込み前に検証します。公開 HTML は React が escape し、画像や script などの外部 resource は取り込みません。
+
+定期取得では FxEmbed の投稿者 ID とアカウント名を固定値と照合し、投稿 ID から求めた日時も検証します。他人の投稿、リポスト、引用元本文は保存しません。1ページ20件を要求し、全件が保存済みの本人投稿であるページ、または終端まで最大10ページ取得します。固定投稿1件だけでは取得を止めません。カーソルの循環、本文の衝突、上限到達、取得失敗時は保存を中止します。取得・検証がすべて成功した場合だけ、一時ファイルを rename してアーカイブを更新します。
 
 日記トップは最新50件に制限し、全投稿を年別の静的ページへ重複なく分割します。トップからすべての年へリンクし、年ページには月別目次、各日記の固定 fragment、固有の canonical
 URL を設定します。日記本文へのスキップリンクとページ上部へ戻るリンクはトップと年ページの両方に置きます。大量の本文が単一 HTML や React

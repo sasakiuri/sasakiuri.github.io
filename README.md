@@ -49,7 +49,7 @@ pnpm dev
 | `pnpm test:reproducible`  | 2 回の clean build の全 SHA-256 を比較                      |
 | `pnpm monitor:production` | 本番の HTTPS、内容、PWA、TLS 証明書を合成監視               |
 | `pnpm diary:import`       | ブラウザーで収集した過去投稿を検証して日記へ統合            |
-| `pnpm diary:update`       | X の公開プロフィールから日記データを取得して追記            |
+| `pnpm diary:update`       | FxEmbed 経由で X の公開投稿を取得して日記へ統合             |
 | `pnpm validate`           | 1 回の build を全 consumer へ渡す Chromium 中心の検証       |
 
 Chromium、Firefox、WebKit は CI で常時実行します。ローカルで `pnpm test:e2e:all` を使う場合は、事前に
@@ -108,9 +108,13 @@ pnpm preview
 - `scripts/lib`: strict HTML／契約検証、typed asset graph、Service Worker、tree／semantic evidence seal
 - `.github/workflows`: 日記更新、build-once CI、セキュリティ、SBOM、attestation、合成監視、GitHub Pages 配信
 
-`Update diary` は毎日00時23分（日本時間）に X のログイン不要な公開プロフィールを確認します。有料 API、API
-key、X の認証情報は使いません。新しい投稿がある場合だけ `src/content/diary.json` をコミットし、検証済みの GitHub
-Pages 配信を開始します。X の取得に失敗した場合は既存のアーカイブを変更しません。
+`Update diary` は毎日00時23分（日本時間）に
+[FxEmbed の公開 API](https://docs.fxembed.com/api/twitter/operations/2profilehandlestatuses/)
+経由で X の投稿を取得します。有料 API、API
+key、X の認証情報は使いません。FxEmbed は X とは別の運営者のサービスです。投稿者の ID、アカウント名、投稿日時を検証し、保存済みの投稿が続くページまで取得します。変更時だけ
+`src/content/diary.json` をコミットし、検証済みの GitHub
+Pages 配信を開始します。取得・検証の失敗時は既存のアーカイブを変更しません。`pnpm diary:update --dry-run`
+で保存せずに追加件数を確認できます。
 
 設計上の判断と変更してはいけない表示仕様は [architecture.md](docs/architecture.md)、運用と SLO は
 [operations.md](docs/operations.md)、脅威と残余リスクは [threat-model.md](docs/threat-model.md) にまとめています。
