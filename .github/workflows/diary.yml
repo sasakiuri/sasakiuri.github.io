@@ -49,11 +49,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Compare fetch access
+        run: node scripts/diagnose-x-diary.mjs --transport fetch
+
       - name: Install Chromium
+        timeout-minutes: 4
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Compare fetch and browser access
-        run: node scripts/diagnose-x-diary.mjs
+      - name: Check browser access after rendering
+        run: node scripts/diagnose-x-diary.mjs --transport chromium
 
   update:
     name: Archive public X posts
