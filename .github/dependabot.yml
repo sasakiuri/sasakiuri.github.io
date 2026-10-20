@@ -3,6 +3,8 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    commit-message:
+      prefix: "build(deps)"
     schedule:
       interval: weekly
       day: monday
@@ -19,6 +21,8 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    commit-message:
+      prefix: "build(deps)"
     schedule:
       interval: weekly
       day: monday
@@ -32,6 +36,8 @@ updates:
 
   - package-ecosystem: devcontainers
     directory: /
+    commit-message:
+      prefix: "build(deps)"
     schedule:
       interval: weekly
       day: monday

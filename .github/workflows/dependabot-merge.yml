@@ -1,0 +1,45 @@
+name: Merge Dependabot updates
+
+# Run automation from 1.x without loading PR code, dependencies, or artifacts.
+# Match each check to the current PR and commit before merging.
+on: # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows: [Verify and deploy, Security, PR title]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-merge
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: Merge verified dependency updates
+    if: >-
+      github.repository == 'sasakiuri/sasakiuri.github.io' && (github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out automation from 1.x
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: 1.x
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+
+      - name: Merge updates after checks pass on the current commit
+        run: node scripts/merge-dependabot.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
