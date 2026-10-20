@@ -190,7 +190,7 @@ jobs:
           fi
           echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Start verified deployment
+      - name: Start deployment checks
         if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}

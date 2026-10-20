@@ -154,7 +154,7 @@ export function DiaryExplorer({ initialPosts, totalPosts, years }: DiaryExplorer
 
   return (
     <>
-      {/* biome-ignore lint/a11y/useSemanticElements: A labelled form with a search role works in older browsers too. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: Use form[role=search] for browsers without the search element. */}
       <form
         aria-label="日記の検索"
         onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}
@@ -427,7 +427,7 @@ async function loadSearchPosts(totalPosts: number, requestPath: string): Promise
 
 function statusMessage(kind: LoadState["kind"], query: string, deferredQuery: string, matches: number): string {
   if (kind === "loading") return "検索データを読み込んでいます。";
-  if (kind === "error") return "検索データを読み込めませんでした。年別の日記は利用できます。";
+  if (kind === "error") return "検索データを読み込めませんでした。年別の日記は読めます。";
   if (query !== deferredQuery) return "検索中です。";
   return deferredQuery.trim() === "" ? `${matches}件` : `${matches}件見つかりました。`;
 }

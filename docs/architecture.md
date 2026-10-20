@@ -1,30 +1,21 @@
-# Architecture
+# 構成と設計
 
-## 目的
+`/` は旧 SLITHY.NET の復元ページ、`/sasakiuri/` は個人ページ、`/sasakuri/diary/`
+は X の公開投稿を保存した日記です。外観と既存 URL を保ったまま、Next.js で静的ファイルを生成して GitHub
+Pages に配信します。
 
-SLITHY.NET の旧トップページを復元し、既存の個人ページを `/sasakiuri/`
-で保ちつつ、フレームワーク更新、型安全性、回帰検知、継続的デプロイを独立して改善できる構成にすることが目的です。さらに、Xの公開投稿を
-`/sasakuri/diary/`
-に保存します。既存ページの外観は意図的に古いまま固定し、内部の契約、検証、配信だけを更新することを設計原則とします。
+## ページの生成
 
-## 実行モデル
+Next.js App Router と React Server Components を使い、`output: "export"`
+で静的ファイルを生成します。日記の検索とページ送りには Client
+Component を使います。JavaScript が動かない場合も、最新50件と年別ページを読めます。
 
-- Next.js App Router の React Server Components を既定とします。
-- output: export により、GitHub Pages に置ける静的ファイルだけを生成します。
-- GitHub
-  Actions が毎日00時23分（日本時間）に FxEmbed の公開 API から X の投稿を取得します。本人の投稿を検証済み JSON へ統合し、変更時だけ配信します。API
-  key や X の認証情報は不要です。
-- 初回の過去投稿は、ログイン済みブラウザーで描画された DOM から投稿 ID と本文だけを JSON に書き出します。ローカルの取り込み処理が厳格に検証し、定期取得と同じ日記データへ統合します。
-- 基本表示は React Server Components で生成します。日記トップだけは、全件検索とページ送りのための Client
-  Component で段階的に拡張します。JavaScriptがない場合も、最新50件と年別アーカイブを読めます。
-- Service Worker 登録は検証済み契約から生成する最小 inline script とします。
-- 画像最適化サーバーを持たない配信先のため、画像はビルド時に寸法を検証しつつ unoptimized モードで元の WebP を配信します。
-
-## 境界
+Service
+Worker の登録コードはサイト設定から生成したインラインスクリプトです。画像はビルド時に寸法を検査し、元の WebP を配信します。画像変換用のサーバーは使いません。
 
 ```text
 src/app/(slithy)/layout.tsx
-  └─ page.tsx ── restored SLITHY.NET
+  └─ page.tsx ── 旧 SLITHY.NET
 
 src/app/(personal)/sasakiuri/layout.tsx
   ├─ StructuredData ── siteConfig
@@ -36,153 +27,178 @@ src/app/(personal)/sasakiuri/layout.tsx
 
 src/app/(diary)/sasakuri/diary/page.tsx
   └─ DiaryPage
-       └─ DiaryExplorer ── latest 50 entries → full search index
+       └─ DiaryExplorer ── 最新50件 → 全件検索
 
 src/app/(diary)/sasakuri/diary/[year]/page.tsx
-  └─ DiaryPage ── yearly archive
+  └─ DiaryPage ── 年別ページ
        └─ src/content/diary.json
 
 src/app/(diary)/sasakuri/diary/search-index.json/route.ts
-  └─ id, publishedAt, text only
+  └─ id, publishedAt, text
 
 src/app/(diary)/sasakuri/diary/feed.xml/route.ts
-  └─ latest 50 entries → canonical yearly archive fragments
+  └─ 最新50件 → 年別ページ内の記事リンク
 
-scripts/browser/export-x-diary.js ── rendered DOM → sanitized JSON
-scripts/import-diary-browser-export.mjs ── sanitized JSON → src/content/diary.json
-scripts/update-diary.mjs ── FxEmbed timeline → validated posts → src/content/diary.json
+scripts/browser/export-x-diary.js ── 表示中の DOM → JSON
+scripts/import-diary-browser-export.mjs ── JSON → src/content/diary.json
+scripts/update-diary.mjs ── FxEmbed → src/content/diary.json
 ```
 
-複数の root
-layout により、英語の旧トップページと日本語の個人ページで文書言語、メタデータ、CSS を分離します。旧トップページは指定された Wayback
-Machine の HTML と favicon をローカルに復元し、実行時にはアーカイブへ接続しません。
+ルートレイアウトを分け、英語の旧トップページと日本語の個人ページ・日記で、文書言語、メタデータ、CSS を設定しています。旧トップページの HTML と favicon は Wayback
+Machine の保存内容を元に復元し、このリポジトリに置いています。ページの表示時に Wayback Machine へは接続しません。
 
-`config/site-contract.json` はルート、文言、URL、画像寸法、PWA scope、公開アセットの唯一の契約です。`siteConfig`
-はその個人ページ部分を型付きで投影します。HomePage は表示だけを担当し、ExternalLink は外部遷移のセキュリティ属性を一元化します。日記データは
-`src/content/diary.json` に保存します。X の snowflake
-ID から投稿時刻を決定的に復元し、ID 重複、URL、時刻、並び順を更新時と build 時の両方で検証します。ブラウザーの書き出しは固定アカウント、形式 version、生成日時、投稿数、未知のフィールドを取り込み前に検証します。公開 HTML は React が escape し、画像や script などの外部 resource は取り込みません。
+## サイト設定
 
-定期取得では FxEmbed の投稿者 ID とアカウント名を固定値と照合し、投稿 ID から求めた日時も検証します。他人の投稿、リポスト、引用元本文は保存しません。1ページ20件を要求し、全件が保存済みの本人投稿であるページ、または終端まで最大10ページ取得します。固定投稿1件だけでは取得を止めません。カーソルの循環、本文の衝突、上限到達、取得失敗時は保存を中止します。取得・検証がすべて成功した場合だけ、一時ファイルを rename してアーカイブを更新します。
+URL、表示文言、画像寸法、PWA のスコープ、公開ファイルは `config/site-contract.json` に記載します。`siteConfig`
+は、そのうち個人ページで使う設定を読み込みます。`HomePage` は表示を担当し、`ExternalLink` は外部リンクの
+`noopener noreferrer` を指定します。
 
-日記トップは最新50件に制限し、全投稿を年別の静的ページへ重複なく分割します。トップからすべての年へリンクし、年ページには月別目次、各日記の固定 fragment、固有の canonical
-URL を設定します。日記本文へのスキップリンクとページ上部へ戻るリンクはトップと年ページの両方に置きます。大量の本文が単一 HTML や React
-Server Components のデータへ集中しないため、個別ファイル307,200
-bytes の上限は維持します。コンテンツ増加を許容する集計上限は HTML 1,310,720 bytes、静的成果物全体4,194,304 bytes です。
+設定は次の箇所で検証します。
 
-日記トップの読み込み後は、同一オリジンの静的な `search-index.json`
-を取得して全件検索へ切り替えます。このインデックスには投稿ID、公開日時、本文だけを含め、件数、フィールド、形式、重複、時系列をクライアントでも厳格に検証します。検索は NFKC正規化、複数語のAND条件、完全一致、編集距離、部分列を組み合わせ、数値を含む語は日付の誤一致を避けるため完全一致だけにします。検索結果は関連度順、空の検索は新しい順です。入力中は関連する本文を単語分割し、投稿そのものではなく3語以内の短い検索語候補を最大5件表示します。候補は見出しやリストの既定余白を挟まず、ブラウザー標準の開いた
-`select`
-として検索ボックスの直後へ置きます。マウスに加えて上下キー、Enter、Escapeで候補を操作できます。候補を選ぶと検索欄へ入力して再検索し、完全に一致した語はネイティブな
-`mark` で本文内に示します。引用符で囲んだ完全一致、先頭の `-` による除外、`OR`
-で区切ったいずれかの条件を解釈します。高度な構文の入力中は検索語候補を表示しません。年と開始日・終了日による絞り込み、関連順・新しい順・古い順、10、25、50、100件の表示件数を選択でき、すべての条件を一度に解除できます。検索語、年、期間、並び順、表示件数、ページは History
-API で URL と同期し、再読み込み、共有、戻る・進むから復元します。検索インデックスの取得に失敗した場合は静的な最新50件を維持し、利用者の操作で再取得できます。
+- アプリケーション: Zod の strict schema
+- CI: Ajv による JSON Schema draft 2020-12 との照合
+- ビルド後: HTML と関連ファイルを読み戻して設定と照合
+- デプロイ直前: Node.js の標準 API で保存済みハッシュと照合
+
+正規 URL、サイトのオリジン、外部 HTTPS
+URL、ディレクトリ、公開ファイル、ビルド成果物のパスは別の型として扱います。設定の不備、PWA のスコープ外にあるファイル、SNS の重複を検出した場合は処理を止めます。読み込んだ設定と子要素はすべて凍結し、実行中の書き換えを防ぎます。
+
+## 日記の取得と保存
+
+`Update diary`
+が毎日00時23分（日本時間）に FxEmbed の公開 API を呼び出します。API キーや X の認証情報は使いません。投稿者の ID とアカウント名を固定値と照合し、X の投稿 ID から求めた日時と API の日時が一致することを確認します。他人の投稿、リポスト、引用元の本文は保存しません。
+
+1ページ20件を要求し、すべて保存済みの本人投稿であるページか終端に達するまで、最大10ページを取得します。固定投稿が1件見つかっただけでは止めません。カーソルの循環、同じ ID に対する本文の不一致、ページ数の上限、通信失敗を検出した場合は保存を中止します。取得と検証がすべて成功した場合だけ、一時ファイルを
+`rename` して日記を更新します。
+
+過去投稿の初回取り込みには、ログイン済みブラウザーで表示された DOM から ID と本文を書き出します。取り込み時にアカウント、形式のバージョン、生成日時、投稿数、フィールドを検証します。外部の画像やスクリプトは取り込みません。
+
+保存先は `src/content/diary.json`
+です。投稿 ID の重複、URL、日時、新しい順の並びを、更新時とビルド時の両方で検証します。本文を HTML に出力するときは React がエスケープします。
+
+## 日記の表示と検索
+
+日記トップは最新50件を表示し、全投稿は年別の静的ページに分けます。トップから各年へリンクし、年別ページには月別目次、各記事への固定リンク、年ごとの正規 URL を設定します。本文へ移動するリンクとページ上部へ戻るリンクは、トップと年別ページの両方に置きます。
+
+HTML と React Server Components のデータが1ファイルに集中しないよう、次のサイズ上限を設けています。
+
+| 対象             | 上限            |
+| ---------------- | --------------- |
+| 個別ファイル     | 307,200 bytes   |
+| HTML の合計      | 1,310,720 bytes |
+| 静的ファイル全体 | 4,194,304 bytes |
+
+ページの読み込み後に、同じサイトの `search-index.json`
+を取得して全件検索に切り替えます。含めるのは投稿 ID、公開日時、本文だけです。ブラウザーでも件数、フィールド、形式、重複、時系列を検証します。取得や検証に失敗した場合は最新50件の表示を残し、再読み込みボタンで再取得できます。
+
+検索では NFKC 正規化、複数語の AND 条件、完全一致、編集距離、部分列の一致を使います。数値を含む語は日付との誤一致を避けるため、完全一致だけにします。既定の並び順は関連順、検索語が空の場合は新しい順です。
+
+入力中は関連する本文から3語以内の検索語候補を最大5件作り、検索欄の直後の `select`
+に表示します。候補の前に見出しやリストの余白は置きません。マウス、上下キー、Enter、Escape で操作できます。選択した候補は検索欄に入り、一致した語は本文中の
+`mark` で強調されます。
+
+引用符による完全一致、先頭の `-` による除外、`OR`
+で区切った条件にも対応します。これらの構文を入力中は候補を出しません。年と開始日・終了日で絞り込めます。並び順は関連順・新しい順・古い順、表示件数は10、25、50、100件を選べます。検索語、年、期間、並び順、件数、ページは History
+API で URL に記録します。再読み込み、共有、戻る・進むで同じ条件を復元でき、条件はまとめて解除できます。
 
 `feed.xml`
-は最新50件の Atom フィードを静的生成します。各項目の識別子とリンクは年別アーカイブ内の記事 fragment であり、取得元の URL は公開しません。日記ページの metadata と本文の購読リンクから検出できます。`archive.txt`
-は日時と本文だけの全件テキスト版を、検索インデックスは同じ最小フィールドの JSON 保存版を兼ねます。
+は最新50件の Atom フィードです。項目の識別子とリンクは年別ページ内の記事を指し、元投稿の URL は含めません。ページのメタデータと購読リンクから参照できます。`archive.txt`
+は全件の日時と本文を出力します。検索インデックスは JSON での保存にも使います。
 
-アプリケーションは公開契約を Zod の strict schema で検証し、CI は Ajv で draft 2020-12 JSON
-Schema と実 instance を照合します。seal 時は WHATWG 準拠 HTML parser を含む semantic validator、deploy 時は Node.js
-built-in だけの promotion verifier と責務を分けます。canonical directory URL、origin、外部 HTTPS URL、directory
-path、public asset path、artifact
-path を別の型として扱います。設定オブジェクトとすべての子要素は parse 時に凍結し、型だけでは防げない設定ミス、scope 外アセット、重複 SNS、実行時の書き換えを拒否します。
+## メタデータとオフライン表示
 
-個人ページと日記が共有する `globals.css`
-は背景色、本文色、読みやすい行長、段階的な左余白、小画面の内側余白だけに限定し、Stylelint とビジュアル回帰テストで固定します。
+Metadata API と1,200 × 630 px の PNG を使い、正規 URL、Open Graph、Twitter Card を出力します。JSON-LD の `ProfilePage`
+と `Person` は検証済みの設定から作り、埋め込み前に `<` を Unicode エスケープに変換します。
 
-## メタデータとオフライン
+`/sasakiuri/` の Web App Manifest には、192 px の通常アイコンと512 px の maskable アイコンを指定します。Service
+Worker のスコープは `/sasakiuri/`
+です。同じオリジンへの GET だけを扱い、ページの移動は network-first、画像・フォント・CSS・JavaScript は stale-while-revalidate で取得します。
 
-- Metadata API と 1,200 × 630 px の静的 PNG により、canonical、Open Graph、Twitter Card を生成します。
-- JSON-LD は `ProfilePage` と `Person` を表し、strict なローカル設定だけから生成します。埋め込み前に `<` を Unicode
-  escape へ変換します。
-- `/sasakiuri/` の Web App Manifest は 192 px の通常アイコンと 512 px の maskable アイコンを公開します。
-- Service Worker は `/sasakiuri/`
-  の scope で同一オリジンの GET だけを扱います。ナビゲーションは network-first、画像、フォント、CSS、JavaScript は stale-while-revalidate です。
-- ビルド後に公開契約と静的成果物から content hash 付きの precache
-  manifest を生成し、既存の HTML、CSS、JavaScript、フォント、画像を初回インストール時に保存します。hash 入力は長さ付き field とし、URL と file
-  byte の境界を曖昧にしません。
-- ビルド後の inline script を SHA-256 で列挙し、script に `unsafe-inline` を許可しない CSP meta を全 application
-  HTML に挿入します。CSP 挿入後の HTML を precache hash の入力にします。
-- ブラウザーの HTTP
-  cache を消した状態でも、オフライン時に同じ HTML とピクセル単位で同じデザインを返します。専用 UI は追加しません。
-- `/.well-known/security.txt` は Private vulnerability reporting と `SECURITY.md` への機械可読な導線を提供します。
+ビルド後、公開ファイルの URL と内容から SHA-256 を求め、初回インストール時に保存するファイル一覧とキャッシュのバージョンを生成します。URL とファイル内容は長さ付きでハッシュ計算に渡します。これで、区切り位置の異なるデータを区別します。
 
-## ツールの互換性境界
+各 HTML のインラインスクリプトから SHA-256 を求め、CSP の `meta` 要素に列挙します。スクリプトに `unsafe-inline`
+は許可しません。CSP を挿入した後の HTML をキャッシュのハッシュ計算に使います。
 
-アプリケーションは TypeScript 7 を使います。一方、dependency-cruiser、Madge、Stryker は TypeScript
-7 の公開 API への対応が完了していないため、`tools/architecture` と `tools/mutation` に TypeScript
-5.9 のワークスペースを設けています。
+ブラウザーの HTTP キャッシュを消した状態で、オフラインでも同じ HTML と表示になることをテストします。オフライン専用の画面は設けません。`/.well-known/security.txt`
+には、非公開の脆弱性報告先と `SECURITY.md` を記載しています。
 
-pnpm の `packageExtensions` で動的に読み込まれる TypeScript の peer 関係を明示し、次の不変条件を保ちます。
+## TypeScript の使い分け
 
-- Next.js、アプリケーション、テストの型検査は TypeScript 7 で実行する。
-- 依存グラフと Mutation Testing のプロセスだけが TypeScript 5.9 を使う。
-- peer dependency の不一致を全体で無効にせず、互換性例外を依存単位で固定する。
+アプリケーションは TypeScript 7 を使います。dependency-cruiser、Madge、Stryker 用には、`tools/architecture` と
+`tools/mutation` に TypeScript 5.9 のワークスペースを置いています。これらのツールが使う API と TypeScript
+7 の互換性を分けて扱うためです。
 
-## デザイン不変条件
+動的に読み込む TypeScript の peer dependency は、pnpm の `packageExtensions` で指定します。
 
-`/sasakiuri/` と `/sasakuri/diary/`
-は、2000年代のブラウザーが CSS なしで表示する文書を基調にした共通デザインです。見出し、section、article、段落、リスト、リンク、ruby、時刻などの意味を HTML で表し、要素間の余白、書体、文字サイズ、リンク色、フォーカス表示にはブラウザーの User
-Agent Stylesheet を使います。作者 CSS は、十分なコントラストと長文の可読性を保つ次の指定だけです。
+- Next.js、アプリケーション、テストの型検査には TypeScript 7 を使う。
+- 依存グラフの解析と Mutation Testing にだけ TypeScript 5.9 を使う。
+- peer dependency の例外は対象の依存に限り、全体の検査は無効にしない。
 
-- 背景色: #f0eee6
-- 本文色: #141413
+## 表示仕様
+
+個人ページと日記は、ブラウザー標準の見出し、段落、リスト、リンク、ルビ、時刻表示を使います。要素間の余白、書体、文字サイズ、リンク色、フォーカス表示もブラウザーの標準スタイルに従います。追加する CSS は次の範囲です。
+
+- 背景色: `#f0eee6`
+- 本文色: `#141413`
 - 本文幅: 欧文75chと和文37icのうち小さい方
-- 左余白: 1440、1280、1024、768 px の各画面幅で308、243、223、177 px、それ未満では0 px
-- 内側余白: 768 px 未満では左右8 px
-- ヒーローの名前: 本文の3倍、ルビはその半分、太字
-- SNSリンクのタッチ領域: 高さ24 px以上
-- 日記の検索欄: ネイティブな既定幅を保ち、利用可能幅を上限とする
+- 左余白: 画面幅1440、1280、1024、768 pxで、それぞれ308、243、223、177 px。それ未満では0 px
+- 内側余白: 画面幅768 px未満では左右8 px
+- 名前の見出し: 本文の3倍、ルビはその半分、太字
+- SNS リンクのタッチ領域: 高さ24 px以上
+- 日記の検索欄: ブラウザーの既定幅を使い、表示領域の幅を上限にする
 
-画像は CSS なしでも 320 px 幅で横スクロールを生じない 300 × 264 px の表示寸法にします。内容のまとまりと日記記事は
-`section` と `article` で表し、まとまりの視覚的・意味的な区切りには `hr` を使います。日記本文の改行は HTML の `br`
-で保持し、各記事を見出しで識別できる構造にします。年別アーカイブはネイティブなリストとリンクで移動でき、現在の年を
-`aria-current="page"` で示します。検索とページ送りもネイティブな `form`、`input`、`select`、`button`
-を使い、期間入力の間には狭い画面用の改行候補を置き、読み込み状態と件数はライブリージョンで通知します。個人トップでは見出し、画像、ルビを含む
-`header` をヒーローとし、文章と作ったものを独立した `section`、外部SNSを `nav`
-として表します。自己紹介や論述は内容を公開する段階で追加します。各まとまりは `hr`
-で区切ります。日記の絞り込み、並び順、候補、ページ送り、検索語の強調には個別の作者 CSS を追加しません。
+画像の表示寸法は300 × 264 pxです。CSS がなくても、画面幅320 pxで横にはみ出さない寸法です。記事には
+`article`、内容のまとまりには `section`、区切りには `hr`、本文の改行には `br` を使います。各記事には見出しを付けます。
 
-390 × 844 と 1280 × 720 の Chromium スクリーンショットをピクセル単位で比較し、意図しない差分を CI で拒否します。320
-px 幅では横方向にあふれないことも確認します。ルートも 1280 ×
-720 の復元元画像とピクセル単位で比較し、見出し、引用文、日付、favicon、外部通信がないことを別のブラウザーテストでも固定します。
+年別ページはリストとリンクで移動でき、現在の年に `aria-current="page"` を指定します。検索とページ送りには
+`form`、`input`、`select`、`button`
+を使います。期間入力の間には狭い画面で折り返せる位置を設け、読み込み状態と件数はライブリージョンで通知します。
 
-## 品質ゲート
+個人ページの先頭は、名前、画像、ルビを含む `header` です。「文章」と「作ったもの」は別々の `section`、SNS のリンクは
+`nav` に置き、各まとまりを `hr`
+で区切ります。自己紹介や論述は公開する内容ができた段階で追加します。日記の絞り込み、並び順、候補、ページ送り、強調表示には専用の CSS を追加しません。
 
-1. Prettier、Biome、Stylelint、Textlint、CSpell によるコードと文章の検査
-2. dependency-cruiser と Madge によるレイヤー境界と循環依存の検査
-3. Next.js のルート型生成と TypeScript strict の追加安全性オプション
-4. Vitest、fast-check の property-based testing、100% カバレッジ閾値
-5. Storybook の play 関数と実ブラウザー axe 検査
-6. Stryker による HTTPS と外部リンク境界の 95% Mutation Testing 閾値
-7. Knip による未使用ファイル、export、依存の検知
-8. size-limit による Brotli 圧縮後 200 kB の JavaScript 予算
-9. Lighthouse 3 回の中央値による性能、アクセシビリティ、Best Practices、SEO の予算
-10. Playwright による Chromium と WebKit の機能、静的成果物、PWA オフライン動作、axe、画像差分の検証
-11. 本番依存のライセンス許可リスト、pnpm audit、Dependency Review、OSV、CodeQL、Gitleaks
-12. actionlint、zizmor、commit SHA 固定による GitHub Actions 自体の検査
-13. JSON Schema の実 instance 検証と、静的成果物の canonical、metadata、JSON-LD、manifest、sitemap、robots、Service
-    Worker、画像実寸、typed asset graph の契約検査
-14. Chromium、Firefox、WebKit が同じ build artifact を検証する build-once promotion
-15. 全 file の tree digest と全 semantic evidence の seal digest の昇格時照合、2 回の clean
-    build 比較、本番 endpoint、PWA、TLS 証明書の合成監視
+390 × 844 pxと1280 × 720 pxの Chromium スクリーンショットを比較し、意図しない差分があれば CI を失敗させます。320
+px幅で横にあふれないことも確認します。旧トップページは1280 × 720
+pxの復元元画像と比較し、見出し、引用文、日付、favicon、外部通信がないこともテストします。
 
-CI は CycloneDX/SPDX SBOM、SLSA
-provenance、ライセンス一覧、JUnit、Lighthouse、Playwright、Storybook、Stryker、完全性 seal の成果物を保存します。一度だけ build した
-`out/` と seal を同じ Actions artifact に格納します。完全な evidence を覆う seal digest は形式検証して job
-output でも別経路で渡し、すべての gate とデプロイ直前で added、removed、changed
-file を照合してから、検証済みの同一 byte だけを GitHub Pages にデプロイします。依存パッケージ、GitHub Actions、Dev
-Container は Dependabot が週次で更新します。
+## CI での検査
 
-## 性能予算
+| 検査対象                 | ツールと基準                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| 書式と文章               | Prettier、Biome、Stylelint、Textlint、CSpell                                                              |
+| モジュール間の依存と循環 | dependency-cruiser、Madge                                                                                 |
+| 型                       | Next.js のルート型生成と TypeScript の strict 設定                                                        |
+| 単体テスト               | Vitest、fast-check。`src/components` と `src/config` の対象コードはカバレッジ100%                         |
+| コンポーネント           | Storybook の操作テストとブラウザーでの axe 検査                                                           |
+| テストの検出力           | Stryker。HTTPS と外部リンクの Mutation Testing は95%以上                                                  |
+| 未使用コードと依存       | Knip                                                                                                      |
+| JavaScript のサイズ      | size-limit。Brotli 圧縮後200 kB以下                                                                       |
+| 性能とアクセシビリティ   | Lighthouse を3回実行し、中央値を比較                                                                      |
+| ブラウザーでの動作       | Playwright。Chromium、Firefox、WebKit で機能、オフライン動作、axe、画像差分を検査                         |
+| 依存パッケージ           | ライセンス許可リスト、pnpm audit、Dependency Review、OSV、CodeQL、Gitleaks                                |
+| GitHub Actions           | actionlint、zizmor。Action はコミット SHA で固定                                                          |
+| 出力ファイル             | サイト設定、URL、メタデータ、JSON-LD、manifest、sitemap、robots、Service Worker、画像寸法、参照先との照合 |
+| 配信前の変更             | 保存したファイル一覧・検査結果・ハッシュとの比較                                                          |
+| ビルドの再現性           | ビルドを2回行い、全ファイルを比較                                                                         |
+| 公開サイト               | HTTP 応答、ページ内容、オフライン用ファイル、TLS 証明書の定期検査                                         |
 
-- 配信 JavaScript: Brotli 圧縮後 200 kB 以下
-- Lighthouse Performance: 0.95 以上
+`quality` ジョブで一度だけ作った `out/`
+と検証用ファイルを、後続のテストとデプロイで共用します。ファイルの追加・削除・内容変更と検査結果の変更をハッシュで確認し、検査したファイルをそのまま配信します。
+
+CI では CycloneDX/SPDX SBOM、SLSA
+provenance、ライセンス一覧、JUnit、各テストのレポート、ファイル一覧と検証用ハッシュを保存します。検査結果全体のハッシュは形式を確認し、成果物とジョブ出力の両方で後続処理へ渡します。依存パッケージ、GitHub
+Actions、Dev Container は Dependabot が週次で更新します。
+
+## 性能の上限と目標値
+
+- 配信 JavaScript: Brotli 圧縮後200 kB以下
+- Lighthouse Performance: 0.95以上
 - Lighthouse Accessibility と SEO: 1.00
-- Lighthouse Best Practices: 0.95 以上
-- LCP: 2,500 ms 以下
-- TBT: 200 ms 以下
-- CLS: 0.05 以下
+- Lighthouse Best Practices: 0.95以上
+- LCP: 2,500 ms以下
+- TBT: 200 ms以下
+- CLS: 0.05以下
 
-ブラウザー E2E では、外部通信が発生しないこと、ブラウザーエラーがないこと、未圧縮 JavaScript と Navigation
-Timing が決定的な上限内に収まることも検査します。
+ブラウザーテストでは、外部通信やブラウザーエラーがないこと、未圧縮 JavaScript のサイズと Navigation
+Timing が設定した上限内に収まることも検査します。

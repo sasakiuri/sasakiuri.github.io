@@ -1,87 +1,96 @@
-# Threat Model
+# セキュリティ上の対策と制約
 
-## 対象と前提
+## 対象
 
-対象は、ソースから GitHub Actions、Actions artifact、GitHub Pages、利用者のブラウザーと Service Worker
-cache までです。サイトは認証、サーバーへ送信する入力、動的 API、データベース、利用者追跡を持ちません。日記の検索語は利用者のブラウザー内だけで処理します。外部サイトへのリンクはありますが、第三者の script、style、font、画像は実行時に読み込みません。
+ソースの変更、GitHub Actions、ビルド成果物の受け渡し、GitHub Pages への配信、ブラウザーと Service
+Worker のキャッシュを対象にします。
 
-保護する資産は、表示内容とデザインの完全性、訪問者に実行される JavaScript、デプロイ権限、依存関係と lockfile、脆弱性報告の機密性、復旧に使う provenance と SBOM です。
+サイトには認証、入力を送信するサーバー、動的 API、データベース、利用者の追跡処理はありません。日記の検索はブラウザー内で行います。外部サイトへのリンクはありますが、表示時に第三者のスクリプト、CSS、フォント、画像は読み込みません。
 
-## Trust boundary
+確認するのは、表示内容と JavaScript の改変、デプロイ権限の悪用、依存パッケージの差し替え、秘密情報の公開です。復旧時には Git の履歴、SBOM、生成元の記録を使います。
+
+## 外部入力と権限を使う箇所
 
 ```mermaid
 flowchart TD
-  Contributor[Contributor workstation] --> GitHub[GitHub repository]
+  Contributor[開発者の環境] --> GitHub[GitHub リポジトリ]
   Registry[npm registry] --> Actions[GitHub Actions]
-  X[X public profile] --> Actions
-  X --> Collector[Browser DOM collector]
+  X[X の公開投稿] --> FxEmbed[FxEmbed]
+  FxEmbed --> Actions
+  X --> Collector[ブラウザーでの書き出し]
   Collector --> Contributor
   GitHub --> Actions
-  Actions --> Artifact[Attested artifact]
+  Actions --> Artifact[ビルド成果物]
   Artifact --> Pages[GitHub Pages]
-  Pages --> Browser[Browser and Service Worker cache]
-  Browser --> External[Explicit external links]
+  Pages --> Browser[ブラウザーとキャッシュ]
+  Browser --> External[外部リンク先]
 ```
 
-GitHub repository への merge、npm
-registry と X の公開 HTML または描画済み DOM からの取得、手動 JSON の repository への取り込み、Actions の OIDC 署名、Pages への deploy、別 origin への利用者遷移が主要な trust
-boundary です。
+外部入力は、npm から取得するパッケージ、FxEmbed の応答、X の表示内容、手動で取り込む JSON です。リポジトリへのマージ、Actions の OIDC による署名、Pages へのデプロイには、それぞれ GitHub の権限を使います。外部リンクを開くと、利用者は別のオリジンへ移動します。
 
-## STRIDE 分析
+## 想定する攻撃と対策
 
-| 脅威                   | 例                                                   | 主な対策                                                                         |
-| ---------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Spoofing               | 偽の配布元や証明書でサイトを装う                     | HTTPS 強制、TLS 合成監視、canonical URL、Sigstore ベースの attestation           |
-| Tampering              | build 後に HTML、chunk、契約証跡を差し替える         | build-once promotion、tree／evidence seal、artifact digest、provenance           |
-| Repudiation            | 誰が何を配信したか追跡できない                       | Git history、environment deployment、OIDC attestation、90 日の証跡保存           |
-| Information disclosure | secret や source map を静的成果物へ混入する          | topology 契約、拡張子拒否、Gitleaks、secret pattern、公開前の検査                |
-| Denial of service      | Pages 障害、巨大 asset、壊れた cache                 | 配信量予算、content hash cache、合成監視、再現可能な rollback                    |
-| Elevation of privilege | 悪意ある Action や install script が権限を取得する   | 最小権限、commit SHA pin、zizmor、allowBuilds、trust policy、CodeQL              |
-| Cross-site scripting   | inline script または依存 chunk を注入する            | hash-based CSP、JSON-LD escaping、外部実行 resource 禁止、React escaping         |
-| Reverse tabnabbing     | 外部リンク先から元ページを操作する                   | `noopener noreferrer` を型付き `ExternalLink` で強制                             |
-| Dependency confusion   | registry や transitive URL から別 package を取得する | pnpm lockfile、exact version、exotic subdependency 拒否、OSV、Dependabot         |
-| Untrusted diary input  | 外部 API や手動 JSON から不正な markup を保存する    | 投稿者 ID／名前／日時検証、DOM 限定収集、strict JSON、URL 再構成、React escaping |
-| Search index tampering | 欠落や異形式の検索データで誤った内容を表示する       | 同一 origin、固定 path、strict field／件数／順序検証、CSP、成果物 seal           |
-| Stale offline content  | Service Worker が脆弱な旧成果物を保持する            | content hash cache、activate 時の旧 cache 削除、network-first navigation         |
+| 脅威                     | 例                                                | 対策                                                                                               |
+| ------------------------ | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| なりすまし               | 偽の配布元や証明書でサイトを装う                  | HTTPS、TLS 証明書の監視、正規 URL、Sigstore による生成元の証明                                     |
+| 改ざん                   | ビルド後に HTML、JavaScript、検査結果を差し替える | 同じビルド成果物の受け渡し、ファイルと検査結果のハッシュ、provenance                               |
+| 記録の欠落               | 誰が何を配信したか分からなくなる                  | Git 履歴、デプロイ記録、OIDC attestation、90日間の記録保存                                         |
+| 情報漏えい               | 秘密情報やソースマップを公開ファイルに混ぜる      | 公開ファイルの配置・拡張子の検査、Gitleaks、秘密情報に似た文字列の検査                             |
+| サービス停止             | Pages の障害、巨大ファイル、壊れたキャッシュ      | ファイルサイズの上限、内容に基づくキャッシュのバージョン、監視、過去のビルドからの復旧             |
+| 権限の悪用               | 不正な Action やインストールスクリプトを実行する  | ジョブごとに必要最小限の権限を設定、コミット SHA の固定、zizmor、allowBuilds、取得時の検査、CodeQL |
+| XSS                      | HTML や JavaScript に不正なコードを混ぜる         | SHA-256 を指定した CSP、JSON-LD と本文のエスケープ、外部スクリプトの禁止                           |
+| 元ページの操作           | 外部リンク先から元のタブを書き換える              | `ExternalLink` で `noopener noreferrer` を指定                                                     |
+| 依存パッケージの差し替え | 別の配布元や URL から同名パッケージを取得させる   | lockfile、バージョン固定、Git・直接 tarball 取得の拒否、OSV、Dependabot                            |
+| 日記への不正入力         | API や手動 JSON から他人の投稿や HTML を混ぜる    | 投稿者・日時・形式の検証、表示中の DOM からの収集、URL の再構成、React のエスケープ                |
+| 検索データの改ざん       | 投稿を欠落させたり、異なる形式で返したりする      | 同じオリジンの固定 URL、フィールド・件数・順序の検証、CSP、成果物のハッシュ                        |
+| 古いオフライン表示       | Service Worker が古いファイルを返す               | 内容に基づくキャッシュのバージョン、旧キャッシュの削除、ページ移動時のネットワーク優先             |
 
-## Supply chain control
+## 依存関係と CI の検査
 
-- Node.js、pnpm、直接依存は exact version で固定します。
-- pnpm は release 後 24 時間未満の version、trust level が以前より低下した version、未承認 install
-  script、transitive な git または tarball dependency を拒否します。
-- GitHub Actions は mutable tag ではなく commit SHA で固定し、Dependabot で更新します。
-- CodeQL、OSV、Dependency Review、Gitleaks、license allowlist、OpenSSF Scorecard を独立した検知層として使います。
-- deploy 対象と attestation 対象は、browser と性能検査を通過した同一 artifact です。quality
-  job が作った完全 evidence の seal digest と検証済み SBOM
-  digest を別経路で渡し、後続 job は shell へ直接展開せず、seal を書き換えずに file 集合、byte、semantic
-  evidence、attestation 対象 SBOM を照合します。
+Node.js、pnpm、直接依存パッケージはバージョンを固定します。pnpm は公開から24時間未満のバージョン、配布元の署名や provenance の信頼条件を満たさないバージョン、未承認のインストールスクリプト、間接依存の Git・tarball
+URL を拒否します。詳しい条件は [dependency-policy.md](dependency-policy.md) に記載しています。
 
-## 残余リスク
+GitHub Actions はタグではなくコミット SHA で固定し、Dependabot で更新します。CodeQL、OSV、Dependency
+Review、Gitleaks、ライセンス許可リスト、OpenSSF Scorecard でも検査します。
 
-日記の定期取得は X とは別の運営者である FxEmbed の公開 API に依存します。認証情報は送信しませんが、公開アカウント名と投稿の取得要求は同サービスへ送られます。ID と日時の整合性検証だけでは本文の改変や投稿の欠落を証明できません。サービスの停止・仕様変更・取得制限時は更新を失敗として扱い、既存データを維持します。保存済みの投稿より古い欠落は、定期取得の範囲外になる場合があります。
+ブラウザーと性能のテスト、デプロイ、生成元の証明には同じビルド成果物を使います。`quality`
+ジョブが作った manifest 全体のハッシュと、検証済み SBOM のハッシュをジョブ出力でも渡します。後続ジョブは環境変数を引用して検証処理に渡し、ファイルの追加・削除・内容変更、検査結果、SBOM を照合します。manifest は上書きしません。
 
-GitHub Pages では repository 単位の任意 HTTP response
-header を設定できません。このため CSP は HTML の先頭に meta として入り、
-`frame-ancestors`、HSTS、Permissions-Policy など header でのみ完全に適用できる制御は Pages 側に依存します。Next.js が出力する inline
-style のため `style-src 'unsafe-inline'` も残ります。一方、script は `unsafe-inline` を許可せず、build ごとの SHA-256
-hash だけを許可します。
+## 外部サービスと配信先の制約
 
-GitHub、npm registry、ブラウザー vendor は外部 trust
-anchor です。これらの全面的な侵害は repository 内の制御だけでは防げません。provenance、複数 scanner、合成監視は、侵害範囲の縮小と検知、復旧を目的とします。
+日記の定期取得は、X とは別の運営者である FxEmbed に依存します。認証情報は送りませんが、公開アカウント名と取得要求は FxEmbed に送られます。ID と日時が一致しても、本文の改変や投稿の欠落までは検出できません。サービスの停止、仕様変更、取得制限で更新できない場合は、保存済みの日記を残します。取得範囲より古い投稿の抜けは、自動取得では補えない場合があります。
 
-外部リンク先の内容と可用性は保証できません。リンクは利用者の明示操作でだけ開き、遷移先に referrer と opener を渡しません。
+GitHub Pages では、このリポジトリから任意の HTTP レスポンスヘッダーを設定できません。CSP は HTML の先頭付近に `meta`
+として挿入します。`frame-ancestors`、HSTS、Permissions-Policy など、ヘッダーでの設定が必要な項目は Pages 側に依存します。Next.js のインラインスタイルを使うため、`style-src 'unsafe-inline'`
+は残ります。スクリプトには `unsafe-inline` を許可せず、ビルド時に計算した SHA-256 を指定します。
 
-X の公開 HTML は公式 API 契約ではありません。構造は予告なく変わる可能性があります。抽出に失敗した場合は更新処理を fail
-closed にし、既存の日記を上書きしません。取得処理は固定プロフィールの本文と数値 ID だけを採用し、HTML、外部画像、外部 script を成果物へコピーしません。
+GitHub、npm、ブラウザーの運営者が侵害された場合、このリポジトリの検査だけでは防げません。生成元の証明、複数の検査ツール、公開サイトの監視は、不正の発見と復旧に使います。
 
-全件検索用の静的 JSON は、投稿 ID、公開日時、本文だけを公開し、元投稿 URL は含めません。全件テキスト版も日時と本文だけから生成します。両方を成果物の形式、配信量、完全性 seal、合成監視の対象にします。ブラウザーは固定した同一オリジンの JSON パスからだけ読み込み、version、全件数、未知のフィールド、ID、日時、本文、重複、降順を検証します。不正または取得失敗なら全件検索を有効にせず、サーバー生成済みの最新50件と年別ページを残します。利用者が明示的に再読み込みした場合だけ同じ固定パスへ再試行します。検索語は最大100文字で、通常の入力操作では History
-API による URL 更新とブラウザー内の処理だけを行います。引用符、除外、`OR`
-を含む検索構文も正規表現として実行せず、長さを制限した文字列として解析します。共有した URL の読み込み時には、検索条件が通常の URL と同様にブラウザー履歴や配信側のアクセスログへ残る可能性があります。Reactのテキストとしてだけ描画し、HTMLとして解釈しません。
+外部リンク先の内容や稼働状況は管理できません。リンクは利用者が操作したときだけ開き、遷移先には参照元の URL と `opener`
+を渡しません。
 
-Atom フィードは投稿 ID、公開日時、本文だけから最新50件を生成します。項目のリンクと識別子は同一サイトの年別アーカイブを指し、元投稿 URL は含めません。本文は XML
-entity に変換し、静的成果物の形式、配信量、完全性 seal、合成監視の対象にします。
+## 日記データの扱い
 
-手動エクスポーターは X のページ内で描画済み DOM だけを読み、Cookie、Web
-Storage、IndexedDB、通信応答にはアクセスしません。出力は投稿 ID と本文だけです。取り込み処理はファイルごとの上限を 20
-MB、投稿数を5,000件に制限し、完全一致の schema、固定アカウント、生成日時、数値 ID、本文の正規化、重複、降順を検証します。複数ファイルの同じ ID に異なる本文がある場合は fail
-closed にします。生の HTML、HAR、アカウントアーカイブは処理対象にしません。
+X の公開 HTML は予告なく変わる可能性があります。HTML の抽出に失敗した場合は処理を中止し、保存済みの日記を上書きしません。取得するのは指定したアカウントの本文と数値 ID です。HTML、外部画像、外部スクリプトは公開ファイルへコピーしません。
+
+### 検索と保存
+
+全件検索用 JSON に含めるのは投稿 ID、公開日時、本文だけです。全件テキスト版も日時と本文から作り、どちらにも元投稿の URL は含めません。形式、サイズ、ハッシュを検査し、公開後の監視でも取得できることを確認します。
+
+ブラウザーは同じオリジンの固定パスから JSON を取得し、形式のバージョン、全件数、フィールド、ID、日時、本文、重複、新しい順の並びを検証します。取得や検証に失敗した場合は全件検索に切り替えず、静的な最新50件と年別ページを残します。再取得は利用者が再読み込みを選んだ場合だけ行います。
+
+検索語は100文字までです。引用符、除外、`OR`
+は文字列として解析し、入力を正規表現として実行しません。通常の入力ではブラウザー内の処理と History
+API での URL 更新だけを行います。共有 URL を開いたときは、検索条件がブラウザーの履歴や配信側のアクセスログに残る可能性があります。検索語は React のテキストとして表示し、HTML として解釈しません。
+
+### フィード
+
+Atom フィードは投稿 ID、公開日時、本文から最新50件を生成します。項目のリンクと識別子は、このサイトの年別ページ内の記事を指します。元投稿の URL は含めません。本文を XML 用にエスケープし、形式、サイズ、ハッシュ、公開後の取得結果を検査します。
+
+### 手動取り込み
+
+書き出しスクリプトは X で表示された DOM だけを読みます。Cookie、Web
+Storage、IndexedDB、通信応答にはアクセスしません。出力する投稿の情報は ID と本文だけです。
+
+取り込みファイルは1つにつき20
+MB、5,000投稿までです。定義どおりのフィールド、アカウント、生成日時、数値 ID、本文の正規化、重複、新しい順の並びを検証します。同じ ID に異なる本文がある場合は取り込みを中止します。生の HTML、HAR、アカウントアーカイブは取り込みません。

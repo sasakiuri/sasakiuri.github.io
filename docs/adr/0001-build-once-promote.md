@@ -1,27 +1,26 @@
-# ADR-0001: Build Once and Promote
+# ADR-0001: 同じビルド成果物を検査・配信に使う
 
-- Status: Accepted
-- Date: 2026-08-25
+- 状態: 採用
+- 日付: 2026-08-25
 
-## Context
+## 背景
 
-browser、Lighthouse、deploy の各 job が個別に build すると、同じ commit でも異なる成果物を検査、配信する可能性があります。build 回数も増え、random
-Build ID は provenance と再現性を弱めます。
+ブラウザーテスト、Lighthouse、デプロイの各ジョブで個別にビルドすると、同じコミットの出力が一致するとは限りません。ビルド回数も増えます。Build
+ID が毎回変わると、ファイルの一致や生成元を確認しにくくなります。
 
-## Decision
+## 決定
 
-Next.js Build ID を静的配信用の固定値にし、`quality` job で一度だけ `out/`
-を生成します。構造、配信量、CSP、全 file の SHA-256 を検査した後、hidden file を含む Actions artifact として保存します。
+Next.js の Build ID を静的配信用の固定値にし、`quality` ジョブで一度だけ `out/`
+を生成します。ファイルの構造、サイズ、CSP、SHA-256 を検査し、隠しファイルも含めて Actions artifact に保存します。
 
-Chromium、Firefox、WebKit、Lighthouse は同じ artifact を download して検査します。deploy
-job も同じ artifact を使い、決定的な tar.gz、SPDX SBOM、build provenance、SBOM
-attestation を生成してから Pages に昇格します。
+Chromium、Firefox、WebKit、Lighthouse は、この artifact をダウンロードして検査します。デプロイも同じファイルを使います。再現可能な tar.gz を作り、SPDX
+SBOM と生成元の証明（build provenance、SBOM attestation）を用意して Pages に配信します。
 
-週次 job では、clean build を 2 回実行し、全 file path、size、SHA-256 が一致することを確認します。
+週次ジョブでは、一度生成ファイルを消してからビルドする操作を2回行い、全ファイルのパス、サイズ、SHA-256 が一致することを確認します。
 
-## Consequences
+## 効果と注意点
 
-- 検査した byte と配信した byte の対応を説明できます。
-- browser matrix を並列化しても build は増えません。
-- framework が非決定的な出力を導入した場合、週次再現性 gate が検知します。
-- 後続 job は build artifact に依存するため、quality job の artifact retention と完全性検査が必須です。
+- 検査したファイルをそのまま配信できます。
+- ブラウザーごとのテストを並列実行しても、ビルドは1回です。
+- フレームワークの更新などで出力が毎回変わるようになった場合は、週次の比較で検出できます。
+- 後続ジョブが使う artifact の保存期間と、受け渡し時のハッシュ検査が必要です。

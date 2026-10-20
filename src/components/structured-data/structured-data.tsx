@@ -22,6 +22,6 @@ export function StructuredData() {
   } as const;
   const serialized = serializeStructuredData(profilePage);
 
-  // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON comes from strict local configuration and escapes HTML delimiters.
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: Local configuration is serialized as JSON, with < escaped.
   return <script dangerouslySetInnerHTML={{ __html: serialized }} type="application/ld+json" />;
 }

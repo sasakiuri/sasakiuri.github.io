@@ -195,7 +195,7 @@ test("retries the full search index without losing the static fallback", async (
   });
   await page.reload();
 
-  await expect(page.getByRole("status")).toHaveText("検索データを読み込めませんでした。年別の日記は利用できます。");
+  await expect(page.getByRole("status")).toHaveText("検索データを読み込めませんでした。年別の日記は読めます。");
   await expect(page.getByRole("article")).toHaveCount(Math.min(latestDiaryPostCount, diaryData.posts.length));
   await expect(page.getByRole("searchbox", { name: "検索" })).toBeDisabled();
 

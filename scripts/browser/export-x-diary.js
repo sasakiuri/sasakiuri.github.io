@@ -237,7 +237,7 @@
   }
 
   function report(level, ...values) {
-    // biome-ignore lint/suspicious/noConsole: Progress is intentionally reported in the DevTools console.
+    // biome-ignore lint/suspicious/noConsole: Report progress in the DevTools console.
     console[level]("[sasakiuri diary]", ...values);
   }
 })();

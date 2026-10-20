@@ -38,7 +38,7 @@ export function verifyArtifactManifest({ actualFiles, actualTotals, contractSha2
   const { sealSha256, ...unsignedManifest } = expected;
   const expectedSealSha256 = createSealSha256(unsignedManifest);
   if (sealSha256 !== expectedSealSha256) {
-    throw new TypeError("Artifact seal is corrupt: its seal digest does not cover its complete evidence.");
+    throw new TypeError("Artifact seal is corrupt: its seal digest does not match its contents.");
   }
   if (trustedSealSha256 !== undefined) {
     if (!isSha256(trustedSealSha256)) throw new TypeError("Trusted workflow seal digest is invalid.");
@@ -53,15 +53,15 @@ export function verifyArtifactManifest({ actualFiles, actualTotals, contractSha2
   const orderedActualFiles = [...actualFiles].sort((left, right) => compareText(left.path, right.path));
   const differences = compareFiles(expected.files, orderedActualFiles);
   if (differences.length > 0) {
-    throw new TypeError(`Promoted artifact differs from its seal:\n- ${differences.join("\n- ")}`);
+    throw new TypeError(`Static export differs from its seal:\n- ${differences.join("\n- ")}`);
   }
   if (!isDeepStrictEqual(actualTotals, expected.totals)) {
-    throw new TypeError("Promoted artifact byte totals differ from its seal.");
+    throw new TypeError("Static export byte totals differ from its seal.");
   }
 
   const actualTreeSha256 = createTreeSha256(orderedActualFiles);
   if (actualTreeSha256 !== expected.treeSha256) {
-    throw new TypeError("Promoted artifact tree digest differs from its seal.");
+    throw new TypeError("Static export tree digest differs from its seal.");
   }
   return { sealSha256, treeSha256: actualTreeSha256 };
 }

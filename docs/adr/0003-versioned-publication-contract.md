@@ -1,47 +1,55 @@
-# ADR-0003: Versioned Publication Contract and Artifact Seal
+# ADR-0003: サイト設定とビルド成果物をハッシュで照合する
 
-- Status: Accepted
-- Date: 2026-09-02
+- 状態: 採用
+- 日付: 2026-09-02
 
-## Context
+## 背景
 
-トップページと個人ページの外観は過去の状態を意図的に保ち、日記を独立した静的 route として公開します。一方、canonical、JSON-LD、Web
-App Manifest、Service
-Worker、sitemap、robots、公開アセットには同じ URL と metadata が複数箇所に現れます。型検査とブラウザーテストだけでは、表示を変えずに起きる metadata の不整合や、ビルド後の file 差し替えを十分に説明できません。
+正規 URL、JSON-LD、Web App Manifest、Service
+Worker、sitemap、robots、画像には、同じ URL やメタデータが複数箇所に現れます。外観と既存 URL を保ったまま更新するには、これらの値がそろっていることを確認する必要があります。
 
-従来の artifact
-verifier は取得した成果物から manifest を毎回作り直していました。そのため成果物が妥当であることは検査できても、quality
-job が最初に検査した byte と後続 job が受け取った byte の同一性は比較していませんでした。
+以前の成果物の検査は、受け取ったファイルから毎回 manifest を作り直していました。内容が検証に通ることは確認できても、最初に検査したファイルと後続ジョブが受け取ったファイルの一致は確認できませんでした。
 
-## Decision
+## 決定
 
-`config/site-contract.json` を version 付きの公開契約とし、draft 2020-12 JSON Schema の実行検証、アプリケーションの Zod
-schema、build toolchain の strict validator の 3 つの境界で fail closed に検証します。契約には origin、trailing-slash
-route、canonical、表示 metadata、SNS、画像、PWA scope、precache shell、discovery file を含めます。
+### サイト設定
 
-静的 export 後に WHATWG 準拠 parser で HTML を解析し、重複 attribute、非引用 attribute、暗黙の文書構造を拒否します。JSON-LD、Web
-App Manifest、sitemap、robots、Service Worker、画像 header を読み戻し、契約との相互整合と参照先を typed asset
-graph として検査します。inline JavaScript は AST で解析し、期待する Service Worker 登録以外による `navigator`
-capability の取得を拒否します。実ブラウザーでも登録回数、URL、scope、cache policy を照合します。Next.js の RSC
-payload と chunk 内部は framework-owned opaque output とし、公開標準から到達できる境界だけを解析します。
+`config/site-contract.json` に形式のバージョンを付け、公開する内容を記載します。対象はオリジン、末尾に `/`
+を持つページ URL、正規 URL、メタデータ、SNS、画像、PWA のスコープ、初回キャッシュのファイル一覧、sitemap と robots です。
 
-検査に成功した file の ordinal path、byte 数、media type、SHA-1、SHA-256 から長さ付き tree
-digest を生成します。さらに、file records、byte totals、route、PWA、discovery、typed asset
-graph の全 evidence を canonical JSON にして seal digest へ含めます。quality job だけが `artifact:seal`
-で seal を書き出し、後続 job は `artifact:verify` で既存 seal と比較します。seal は静的成果物と同じ Actions
-artifact に保存し、形式検証済みの seal digest は job
-output でも渡します。shell へ直接展開せず、引用した環境変数として verifier に渡します。verify は seal を上書きしません。
+JSON Schema draft
+2020-12、アプリケーションの Zod、ビルド用の検証処理でそれぞれ確認します。想定外のフィールドや不正な値がある場合は処理を中止します。
 
-Service Worker の cache version も、ordinal URL と file byte を長さ付き field として SHA-256 へ入力します。Service
-Worker 自身は自己参照を避けるため version 入力と precache 対象に含めません。
+### 出力ファイル
 
-## Consequences
+ビルド後に WHATWG 準拠のパーサーで HTML を読みます。属性の重複、引用符のない属性、文書構造の省略を拒否します。JSON-LD、manifest、sitemap、robots、Service
+Worker、画像ヘッダーも読み、設定との一致とファイル間の参照を確認します。参照元と参照先は種類を区別して記録します。
 
-- 古い外観と既存 URL を変えずに、metadata と PWA の drift を build 時に検知できます。
-- file の追加、削除、内容変更、seal 改変、異なる公開契約を別の失敗として報告できます。
-- deploy job は package install なしで同一性を検証できます。
-- SPDX 2.3 は全配信 file の SHA-1 と SHA-256、規定の package verification
-  code を持ち、公式 validator を通過してから attestation に使います。検証直後の SBOM SHA-256 も job
-  output で渡し、attestation の直前に byte 単位で再照合します。
-- 公開契約の意図的な変更では schema、投影、成果物、visual baseline の各層を同時にレビューする必要があります。
-- parser は生成 HTML を再シリアライズせず、browser と同じ構文で解釈する fail-closed reader として保守します。
+インライン JavaScript は AST で解析します。想定した Service Worker の登録コード以外で `navigator`
+を取得するコードは拒否します。ブラウザーテストでも、登録回数、URL、スコープ、キャッシュの取得方法を照合します。Next.js が生成する RSC データと JavaScript ファイルの内部は解析せず、HTML などから参照できる部分を検査します。
+
+### ファイル一覧と検査結果のハッシュ
+
+検査したファイルのパス、バイト数、メディアタイプ、SHA-1、SHA-256 をパス順に並べ、各項目に長さを付けて `treeSha256`
+を計算します。
+
+ファイル一覧、合計サイズ、ページ、PWA、sitemap・robots、ファイル間の参照関係をキー順が一定の JSON にまとめ、`sealSha256`
+を計算します。`quality` ジョブだけが `artifact:seal` で manifest を書き出し、後続ジョブは `artifact:verify`
+で保存した値と比較します。検証時に manifest は上書きしません。
+
+manifest は静的ファイルと同じ Actions artifact に保存します。`sealSha256`
+は形式を確認した上でジョブ出力にも渡します。シェルのコマンド内へ直接埋め込まず、引用した環境変数として検証処理に渡します。
+
+Service
+Worker のキャッシュも、URL とファイル内容を一定の順序で並べ、長さを付けて SHA-256 を計算します。自己参照を避けるため、Service
+Worker 自身はハッシュの入力と初回キャッシュの対象から外します。
+
+## 効果と注意点
+
+- 外観や URL を変えずに起きた、メタデータや PWA 設定の不一致を検出できます。
+- ファイルの追加・削除・内容変更、manifest の改変、サイト設定の不一致を区別して報告できます。
+- デプロイ時の照合にはパッケージのインストールが不要です。
+- SPDX 2.3 の SBOM は全ファイルの SHA-1、SHA-256、package verification
+  code を含み、公式の検証処理に通ってから attestation に使います。検証後の SBOM の SHA-256 はジョブ出力でも渡し、attestation の直前に再確認します。
+- サイト設定を変える場合は、schema、アプリケーションが読み込む設定、出力ファイル、画像比較の基準を併せて確認します。
+- HTML の検査は読み取り専用です。生成した HTML をパーサーで書き直しません。ブラウザーと同じ構文で読めない場合は処理を止めます。
