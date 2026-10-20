@@ -19,14 +19,14 @@ update:
   githubActions: true
 verifyDepsBeforeRun: error
 
-# Storybook's config loader works with TypeScript 7, but its published peer range
-# has not caught up. Keep the exception scoped to the exact dependent.
+# Storybook's config loader works with TypeScript 7, outside its declared peer range.
+# Apply the exception to tsconfck only.
 peerDependencyRules:
   allowedVersions:
     "tsconfck@3>typescript": "7"
 
-# These analysis tools load TypeScript without declaring it. Model the runtime
-# contract as a peer so each compatibility workspace's TypeScript 5 is used.
+# These tools load TypeScript without declaring it.
+# Add a peer dependency so they use TypeScript 5 from their workspace.
 packageExtensions:
   "@stryker-mutator/core@10.0.0":
     peerDependencies:
@@ -37,6 +37,7 @@ packageExtensions:
 
 overrides:
   "typed-rest-client>qs": "6.16.0"
+  "serve>compression": "1.8.2"
 
 allowBuilds:
   esbuild: true
