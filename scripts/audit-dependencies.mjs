@@ -12,21 +12,18 @@ if (packageManagerPath === undefined) {
 
 const exceptions = new Map([
   [
-    "GHSA-w3rx-r6r6-pgpr",
+    "GHSA-vfj7-8cjw-p6xm",
     {
-      expires: "2026-09-30",
-      moduleName: "image-size",
-      pathSuffix: "@storybook/nextjs-vite>vite-plugin-storybook-nextjs>image-size",
-      version: "2.0.2",
-    },
-  ],
-  [
-    "GHSA-5p2g-fcmc-qvqq",
-    {
-      expires: "2026-09-30",
-      moduleName: "image-size",
-      pathSuffix: "@storybook/nextjs-vite>vite-plugin-storybook-nextjs>image-size",
-      version: "2.0.2",
+      // No patched release exists. These Stylelint paths only process repository globs.
+      expires: "2026-11-03",
+      moduleName: "braces",
+      pathSuffixes: [
+        ">stylelint>micromatch>braces",
+        ">stylelint>fast-glob>micromatch>braces",
+        ">stylelint>globby>micromatch>braces",
+        ">stylelint>globby>fast-glob>micromatch>braces",
+      ],
+      version: "3.0.3",
     },
   ],
 ]);
@@ -84,7 +81,9 @@ function matchesException(advisory, exception) {
         finding.dev === true &&
         finding.version === exception.version &&
         finding.paths.length > 0 &&
-        finding.paths.every((dependencyPath) => dependencyPath.endsWith(exception.pathSuffix)),
+        finding.paths.every((dependencyPath) =>
+          exception.pathSuffixes.some((suffix) => dependencyPath.endsWith(suffix)),
+        ),
     )
   );
 }
