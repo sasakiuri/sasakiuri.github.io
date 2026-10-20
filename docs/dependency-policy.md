@@ -1,37 +1,39 @@
-# Dependency Policy
+# 依存パッケージの管理方針
 
 ## 原則
 
-依存追加には、標準 API や既存依存では解決できない明確な理由が必要です。本番 dependency は実際に browser または build 時の本番経路で必要なものだけにし、解析、test、文書化の tool は devDependency または互換性 workspace に隔離します。
+依存パッケージを追加するには、標準 API や既存のパッケージでは解決できない理由が必要です。本番用の依存パッケージは、ブラウザーまたは本番用ビルドで必要なものに限ります。解析、テスト、文書作成のツールは、`devDependencies`
+または互換性を保つためのワークスペースに分けます。
 
-すべての直接依存は exact version、pnpm lockfile は commit 対象です。Node.js と pnpm も `.node-version`、`.nvmrc`、
-`packageManager`、Volta で固定します。
+すべての直接依存はバージョン番号を固定し、pnpm のロックファイルをコミットします。Node.js と pnpm のバージョンも
+`.node-version`、`.nvmrc`、`packageManager`、Volta で固定します。
 
-## 取得時の policy
+## 取得時の検査
 
 `pnpm-workspace.yaml` は次を強制します。
 
-- 公開後 1,440 分未満の version を strict mode で拒否する。
-- 過去 1 年以内の package で、以前の release より npm provenance または署名の trust level が下がった場合に拒否する。
-- registry が publish time を返せない場合に fail closed とする。
-- transitive dependency の git、SSH、直接 tarball URL を拒否する。
-- dependency install script は `allowBuilds` で個別承認し、未審査 script を拒否する。
-- workspace cycle と peer dependency 不整合を拒否する。
+- 公開から1,440分未満のバージョンを拒否する。
+- 過去 1 年以内に公開されたパッケージで、npm provenance または署名の信頼度が以前のリリースより下がった場合に拒否する。
+- レジストリーから公開日時を取得できない場合は、インストールを拒否する。
+- 間接依存に Git、SSH、tarball の直接 URL が指定されていたら拒否する。
+- インストールスクリプトは `allowBuilds` で個別に承認し、未審査のスクリプトを拒否する。
+- ワークスペース間の循環依存と peer dependency の不整合を拒否する。
 
-互換性のための `packageExtensions` と脆弱性 override は、package、version、理由を限定します。全体的な peer
-dependency 無視や全 install script 許可は禁止です。
+互換性を補う `packageExtensions`
+と脆弱性対策の override は、対象のパッケージとバージョンを限定し、理由を明記します。すべての peer
+dependency を無視する設定や、すべてのインストールスクリプトを許可する設定は禁止です。
 
 ## 更新と例外
 
 Dependabot は npm、GitHub Actions、Dev
-Container を週次更新します。更新 PR は通常の static、unit、browser、visual、performance、security
-gate をすべて通す必要があります。
+Container を週次更新します。更新 PR は、静的解析、単体テスト、ブラウザーテスト、画像比較、性能、セキュリティの検査をすべて通す必要があります。
 
-脆弱性例外には advisory ID、正確な dependency path、version、development-only かどうか、失効日を必要とします。例外は
-`scripts/audit-dependencies.mjs` と Dependency Review の両方で同じ範囲に限定し、失効後は自動的に失敗させます。
+脆弱性の例外には、アドバイザリー ID、正確な依存経路、バージョン、開発時のみの依存かどうか、失効日が必要です。例外の条件と失効日は
+`scripts/audit-dependencies.mjs` で検証し、失効後は自動検査を失敗させます。Dependency
+Review の許可設定も、例外の追加・失効時に更新して対象をそろえてください。
 
-license は本番 dependency の allowlist 方式です。新しい license または dual
-license 表記を追加する場合は、利用条件を確認してから `scripts/check-licenses.mjs` の allowlist を更新します。
+本番用の依存パッケージには、許可リストに載っているライセンスだけを使えます。新しいライセンスまたはデュアルライセンス表記を追加する場合は、利用条件を確認してから
+`scripts/check-licenses.mjs` の許可リストを更新します。
 
 ## 確認コマンド
 
@@ -42,5 +44,5 @@ pnpm deps:audit
 pnpm license:check
 ```
 
-`pnpm install` 自体が lockfile 全 entry に supply-chain policy を再適用します。信頼済みとして検査を省略する
-`trustLockfile` は有効にしません。
+`pnpm install` は、ロックファイルの全項目に取得時の検査を再適用します。信頼済みとして検査を省略する `trustLockfile`
+は有効にしません。

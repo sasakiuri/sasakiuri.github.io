@@ -29,7 +29,7 @@ export function extractXTimelinePage(value) {
     const matchesId = status.author.id === authorId;
     const matchesHandle = status.author.screen_name.toLowerCase() === diarySource.username;
     if (matchesId !== matchesHandle) throw new TypeError("FxEmbed returned a mismatched diary author.");
-    // Reposts and nested quotes must never become another person's diary entry.
+    // Skip reposts and posts by other authors.
     if (!matchesId || status.reposted_by != null) continue;
 
     if (typeof status.text !== "string") throw new TypeError("FxEmbed returned invalid post text.");

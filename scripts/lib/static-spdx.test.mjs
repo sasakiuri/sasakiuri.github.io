@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { createArtifactManifest } from "./artifact-manifest.mjs";
 import { createPackageVerificationCode, createStaticSpdx } from "./static-spdx.mjs";
 
-describe("static export SPDX evidence", () => {
+describe("static export SPDX SBOM", () => {
   it("lists every sealed file and relates it to the release package", () => {
     const manifest = fixtureManifest();
     const first = createStaticSpdx({ created: "2026-09-02T00:00:00Z", manifest });
@@ -27,7 +27,7 @@ describe("static export SPDX evidence", () => {
     );
   });
 
-  it("classifies image, binary, and text evidence", () => {
+  it("classifies image, binary, and text files", () => {
     const spdx = createStaticSpdx({ created: "2026-09-02T00:00:00Z", manifest: fixtureManifest() });
 
     expect(spdx.files.map(({ fileTypes }) => fileTypes[0])).toEqual(["IMAGE", "TEXT"]);

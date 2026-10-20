@@ -27,7 +27,7 @@ const totals = {
 };
 
 describe("artifact integrity seal", () => {
-  it("seals files and complete semantic evidence deterministically", () => {
+  it("hashes files and validation results deterministically", () => {
     const expected = manifest();
 
     expect(
@@ -64,7 +64,7 @@ describe("artifact integrity seal", () => {
     expect(compareFiles(first, [{ ...first[0], sri: "sha256-invalid" }])).toEqual(["SRI changed index.html"]);
   });
 
-  it("rejects tree, full-evidence seal, and trust-boundary corruption", () => {
+  it("rejects modified file hashes, manifests, and expected workflow hashes", () => {
     const expected = manifest();
     expect(() => verify({ ...expected, treeSha256: sha256("corrupt") })).toThrow(/tree digest/u);
 
@@ -95,7 +95,7 @@ describe("artifact integrity seal", () => {
     ).toThrow(/different site contract/u);
   });
 
-  it("strictly validates evidence shape and evidence-to-file hashes", () => {
+  it("validates result fields and their file hashes", () => {
     const unknownProperty = structuredClone(manifest());
     unknownProperty.contract.unknown = true;
     expect(() => verify(unknownProperty)).toThrow(/missing or unknown properties/u);

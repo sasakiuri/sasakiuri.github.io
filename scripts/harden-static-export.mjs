@@ -16,7 +16,7 @@ const pages = [];
 for (const filePath of htmlFiles) {
   const html = await readUtf8(filePath);
 
-  // Provider verification files are deliberately plain HTML and do not execute application resources.
+  // Provider verification files contain no application scripts.
   if (!html.includes("/_next/")) {
     continue;
   }

@@ -5,20 +5,19 @@
 [![OpenSSF Scorecard](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/scorecard.yml)
 [![Production monitoring](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/monitoring.yml/badge.svg)](https://github.com/sasakiuri/sasakiuri.github.io/actions/workflows/monitoring.yml)
 
-`slithy.net` の静的サイトです。外観は過去のページをそのまま保ち、内部だけを現行の型安全な静的配信基盤にしています。
+`slithy.net` のソースです。Next.js で静的ファイルを生成し、GitHub Pages で公開しています。
 
 - `/`: [2016 年 10 月 6 日の SLITHY.NET](https://web.archive.org/web/20161006024016/http://slithy.net/)
   を復元したトップページ
 - `/sasakiuri/`: 梶ヶ谷宜之のホームページ
-- `/sasakuri/diary/`: 検索語候補、高度な検索、期間指定、ページ送り、購読・保存機能を備えた日記
+- `/sasakuri/diary/`: X の公開投稿を保存した日記
 
 トップページの favicon は、[2011 年 10 月 13 日のアーカイブ](https://web.archive.org/web/20111013212903/http://www.slithy.net/)
-に保存されているオリジナルを使用します。実行時に外部リソースは読み込みません。
+に保存されていたものです。ページの表示時に外部の画像やスクリプトは読み込みません。
 
-## 必要な環境
+## ローカルで起動する
 
-- Node.js 24.16.0（`.node-version` / `.nvmrc`）
-- pnpm 11.23.0
+Node.js 24.16.0 と pnpm 11.23.0 を使います。Node.js のバージョンは `.node-version` と `.nvmrc` にも記載しています。
 
 ```sh
 corepack enable
@@ -26,50 +25,70 @@ pnpm install
 pnpm dev
 ```
 
-`http://localhost:3000/`、`http://localhost:3000/sasakiuri/`、`http://localhost:3000/sasakuri/diary/` で確認できます。
+`http://localhost:3000/`、`http://localhost:3000/sasakiuri/`、`http://localhost:3000/sasakuri/diary/`
+で各ページを確認できます。
 
-## 主なコマンド
+VS Code と GitHub Codespaces 用の設定は `.devcontainer/devcontainer.json`
+にあります。Node.js、拡張機能、ポート、初回の依存インストールを設定しています。
 
-| コマンド                  | 用途                                                        |
-| ------------------------- | ----------------------------------------------------------- |
-| `pnpm dev`                | Turbopack 開発サーバー                                      |
-| `pnpm build`              | 静的 export、hash CSP、PWA precache、成果物 seal の生成     |
-| `pnpm contract:validate`  | 公開契約の draft 2020-12 JSON Schema 実行検証               |
-| `pnpm check`              | 書式、文章、契約、依存境界、型、単体テスト、ライセンス検査  |
-| `pnpm test:storybook`     | Story の操作テストと実ブラウザーでのアクセシビリティ検査    |
-| `pnpm test:e2e`           | Chromium の機能、axe、画像差分、PWA、配信量、SEO の検査     |
-| `pnpm test:e2e:all`       | Chromium、Firefox、WebKit の全ブラウザー検査                |
-| `pnpm test:lighthouse`    | 3 回の Lighthouse 計測と中央値の予算検査                    |
-| `pnpm test:mutation`      | Stryker によるセキュリティ境界の Mutation Testing           |
-| `pnpm storybook`          | コンポーネントカタログ                                      |
-| `pnpm license:report`     | 本番依存ライセンスの許可判定と JSON 出力                    |
-| `pnpm test:e2e:update`    | 意図した変更後の画像差分ベースライン更新                    |
-| `pnpm artifact:seal`      | 公開契約、CSP、参照、配信量を検査して成果物を封印           |
-| `pnpm artifact:verify`    | 既存 seal と現在の成果物 byte を比較（seal は上書きしない） |
-| `pnpm test:reproducible`  | 2 回の clean build の全 SHA-256 を比較                      |
-| `pnpm monitor:production` | 本番の HTTPS、内容、PWA、TLS 証明書を合成監視               |
-| `pnpm diary:import`       | ブラウザーで収集した過去投稿を検証して日記へ統合            |
-| `pnpm diary:update`       | FxEmbed 経由で X の公開投稿を取得して日記へ統合             |
-| `pnpm validate`           | 1 回の build を全 consumer へ渡す Chromium 中心の検証       |
+## コマンド
 
-Chromium、Firefox、WebKit は CI で常時実行します。ローカルで `pnpm test:e2e:all` を使う場合は、事前に
-`pnpm exec playwright install --with-deps chromium firefox webkit` を実行してください。
+| コマンド                  | 用途                                                             |
+| ------------------------- | ---------------------------------------------------------------- |
+| `pnpm dev`                | 開発サーバーの起動                                               |
+| `pnpm build`              | 静的ファイル、CSP、オフライン用キャッシュ、検証用ハッシュの生成  |
+| `pnpm contract:validate`  | サイト設定を JSON Schema draft 2020-12 で検証                    |
+| `pnpm check`              | 書式、文章、依存関係、型、単体テスト、ライセンスの検査           |
+| `pnpm test:storybook`     | コンポーネントの操作とアクセシビリティの検査                     |
+| `pnpm test:e2e`           | Chromium で機能、画像差分、オフライン動作、配信量、SEO を検査    |
+| `pnpm test:e2e:all`       | Chromium、Firefox、WebKit での検査                               |
+| `pnpm test:lighthouse`    | ビルド後に Lighthouse を3回実行し、中央値を確認                  |
+| `pnpm test:mutation`      | Stryker で HTTPS と外部リンクのテストを検査                      |
+| `pnpm storybook`          | Storybook の起動                                                 |
+| `pnpm license:report`     | 本番依存のライセンスを検査し、JSON に出力                        |
+| `pnpm test:e2e:update`    | 意図した表示変更の画像を比較基準として保存                       |
+| `pnpm artifact:seal`      | 成果物を検査し、ファイル一覧と検査結果のハッシュを保存           |
+| `pnpm artifact:verify`    | 保存したハッシュと現在の成果物を比較                             |
+| `pnpm test:reproducible`  | ビルドを2回行い、全ファイルの SHA-256 を比較                     |
+| `pnpm monitor:production` | 公開サイトの HTTPS、内容、オフライン用ファイル、TLS 証明書を検査 |
+| `pnpm diary:import`       | ブラウザーで書き出した投稿を日記に追加                           |
+| `pnpm diary:update`       | FxEmbed から X の公開投稿を取得して日記を更新                    |
+| `pnpm validate`           | コード検査、ビルド、Chromium、性能、依存監査の一括実行           |
 
-VS Code または GitHub Codespaces では `.devcontainer/devcontainer.json`
-により、Node.js、拡張機能、port、初回 install を含む同じ開発環境を構築できます。
+CI では Chromium、Firefox、WebKit を使います。ローカルで `pnpm test:e2e:all`
+を実行する場合は、先にブラウザーをインストールしてください。
+
+```sh
+pnpm exec playwright install --with-deps chromium firefox webkit
+```
+
+## 日記の自動更新
+
+`Update diary`
+が毎日00時23分（日本時間）に、[FxEmbed の公開 API](https://docs.fxembed.com/api/twitter/operations/2profilehandlestatuses/)
+から X の投稿を取得します。無料で利用でき、API キーや X の認証情報は使いません。FxEmbed は X とは別の運営者のサービスです。
+
+投稿者の ID、アカウント名、投稿日時を確認し、保存済みの投稿が続くページまで取得します。変更があれば
+`src/content/diary.json` をコミットし、テストとビルドを実行して GitHub
+Pages に配信します。取得や検証に失敗した場合は、保存済みのデータを変更しません。
+
+```sh
+pnpm diary:update --dry-run
+```
+
+このコマンドでは、ファイルを変更せずに追加件数と本文の更新件数を確認できます。
 
 ## 過去投稿を手動で取り込む
 
-ログイン不要の公開 HTML には直近の数件しか含まれないため、過去投稿の初回取り込みには
-[`scripts/browser/export-x-diary.js`](scripts/browser/export-x-diary.js) を使います。
+ログインせずに取得できる公開 HTML には、直近の数件しか含まれません。過去の投稿は、ログイン済みのブラウザーで
+[`scripts/browser/export-x-diary.js`](scripts/browser/export-x-diary.js) を実行して書き出します。
 
 1. Chrome または Edge で X にログインし、`https://x.com/sasakiuri/with_replies` を開きます。
-2. DevTools の `Sources`、`Snippets`、`New snippet` の順に開き、`export-x-diary.js` の内容全体を貼り付けて実行します。
-3. タブを開いたまま待ちます。スクリプトが自動で下へ移動し、完了すると `sasakiuri-posts-YYYY-MM-DD.json`
-   をダウンロードします。
+2. DevTools の `Sources` → `Snippets` → `New snippet` を開き、スクリプト全体を貼り付けて実行します。
+3. タブを開いたまま待ちます。自動で下へスクロールし、完了すると `sasakiuri-posts-YYYY-MM-DD.json` をダウンロードします。
 
-進捗は DevTools の Console で確認できます。途中までを保存する場合は `stop()`、ダウンロードがブロックされた場合は
-`download()` を実行します。
+進捗は Console で確認できます。途中までを保存する場合は `stop()`、ダウンロードがブロックされた場合は `download()`
+を実行します。
 
 ```js
 __sasakiuriDiaryExporter.status();
@@ -77,7 +96,7 @@ __sasakiuriDiaryExporter.stop();
 __sasakiuriDiaryExporter.download();
 ```
 
-書き出し件数は、画面の DOM に読み込めた本人の投稿数です。返信は含み、リポスト、削除済みまたは表示できない投稿は含みません。読み込みが途中で止まった場合は再度実行し、複数の JSON を一度に指定できます。重複は投稿 ID で統合します。
+保存されるのは、画面に読み込まれた本人の投稿です。返信は含みますが、リポストや削除済み・表示できない投稿は含みません。読み込みが止まった場合は再実行し、複数の JSON をまとめて取り込めます。投稿 ID が同じものは重複して保存しません。
 
 ```sh
 pnpm diary:import --dry-run /path/to/sasakiuri-posts-YYYY-MM-DD.json
@@ -87,34 +106,38 @@ pnpm build
 pnpm preview
 ```
 
-取り込み後は `http://localhost:3000/sasakuri/diary/`、または `pnpm preview`
-が表示する URL で確認します。日記トップでは全件をインクリメンタルに曖昧検索でき、入力中は本文から抽出した短い検索語候補を最大5件表示します。候補は上下キー、Enter、Escapeでも操作でき、完全に一致した検索語は本文内で強調されます。引用符による完全一致、`-検索語`
-による除外、`OR`
-条件にも対応します。年と期間、関連順・新しい順・古い順、1ページ当たり10、25、50、100件を選べ、条件は一度に解除できます。検索条件とページは URL に保存されるため、再読み込み、共有、ブラウザーの戻る・進むでも同じ表示を復元します。
+取り込み後は、開発サーバーの日記ページか `pnpm preview` が表示する URL で確認します。
 
-年別ページには月別目次と各日記の固定リンクがあります。`/sasakuri/diary/feed.xml`
-では最新50件を Atom で購読でき、全件をテキストまたは JSON でも保存できます。検索データの取得に失敗した場合は再読み込みでき、失敗中や JavaScriptを利用できない場合も最新50件と年別の静的ページを読めます。ページ内の本文と上部へ移動するリンクはキーボードでも利用できます。エクスポーターは表示中の投稿 ID と本文だけを JSON に保存します。Cookie、ストレージ、通信内容にはアクセスしません。HTML、HAR、X のアカウントアーカイブは取り込まないでください。
+書き出しスクリプトが読むのは、表示中の投稿 ID と本文だけです。Cookie、ストレージ、通信内容にはアクセスしません。取り込めるのはこのスクリプトが出力した JSON です。HTML、HAR、X のアカウントアーカイブは使えません。
 
-## 構成
+## 日記の検索と保存
 
-- `src/app`: ルートごとの App Router、構造化メタデータ、OG 画像、sitemap、robots、manifest、Service Worker 登録
-- `src/components`: 表示コンポーネントと Storybook Story
-- `src/content/diary.json`: 自動取得した公開投稿の Git 管理アーカイブ
-- `config/site-contract.json`: ルート、表示内容、PWA、公開アセットの version 付き契約
-- `src/config`: 公開契約を Zod で再検証して深く凍結するアプリケーション境界
-- `public`: SLITHY.NET の favicon、`/sasakiuri/` 用 PWA アイコンと Service Worker、RFC 9116 の security.txt
-- `tests/e2e`: ブラウザー、アクセシビリティ、SEO、PWA、性能、ビジュアル回帰テスト
-- `tools`: TypeScript 5.9 を必要とする解析ツールの隔離ワークスペース
-- `scripts/lib`: strict HTML／契約検証、typed asset graph、Service Worker、tree／semantic evidence seal
-- `.github/workflows`: 日記更新、build-once CI、セキュリティ、SBOM、attestation、合成監視、GitHub Pages 配信
+検索欄に入力すると、保存した全投稿から検索します。入力中は本文から短い検索語候補を最大5件表示します。候補は上下キー、Enter、Escape でも操作できます。一致した語は本文中で強調します。
 
-`Update diary` は毎日00時23分（日本時間）に
-[FxEmbed の公開 API](https://docs.fxembed.com/api/twitter/operations/2profilehandlestatuses/)
-経由で X の投稿を取得します。有料 API、API
-key、X の認証情報は使いません。FxEmbed は X とは別の運営者のサービスです。投稿者の ID、アカウント名、投稿日時を検証し、保存済みの投稿が続くページまで取得します。変更時だけ
-`src/content/diary.json` をコミットし、検証済みの GitHub
-Pages 配信を開始します。取得・検証の失敗時は既存のアーカイブを変更しません。`pnpm diary:update --dry-run`
-で保存せずに追加件数を確認できます。
+- `"検索語"`: 完全一致
+- `-検索語`: その語を含む投稿を除外
+- `検索語 OR 検索語`: どちらかを含む投稿
 
-設計上の判断と変更してはいけない表示仕様は [architecture.md](docs/architecture.md)、運用と SLO は
-[operations.md](docs/operations.md)、脅威と残余リスクは [threat-model.md](docs/threat-model.md) にまとめています。
+年と期間で絞り込み、関連順・新しい順・古い順に並べ替えられます。1ページの表示件数は10、25、50、100件です。検索条件とページは URL に保存され、再読み込み、共有、ブラウザーの戻る・進むでも引き継がれます。条件はまとめて解除できます。
+
+年別ページには月別目次と各記事への固定リンクがあります。検索データの取得に失敗した場合は再読み込みできます。JavaScript が動かない場合も、最新50件と年別ページは読めます。本文とページ上部へのリンクはキーボードでも操作できます。
+
+`/sasakuri/diary/feed.xml`
+では最新50件を Atom で購読できます。全件をテキストまたは JSON で保存するリンクも日記ページにあります。
+
+## ファイルの配置
+
+- `src/app`: ページ、メタデータ、OG 画像、サイトマップ、robots、manifest
+- `src/components`: 表示コンポーネントと Storybook
+- `src/content/diary.json`: Git で保存する日記データ
+- `config/site-contract.json`: URL、表示内容、画像、PWA の設定
+- `src/config`: 設定を検証して読み込む処理
+- `public`: favicon、PWA アイコン、Service Worker、`security.txt`
+- `tests/e2e`: ブラウザーでの操作、表示、オフライン動作、性能のテスト
+- `tools`: TypeScript 5.9 を使う解析ツール用のワークスペース
+- `scripts/lib`: HTML、設定、参照ファイル、キャッシュ、ハッシュの検査処理
+- `.github/workflows`: 日記更新、テスト、ビルド、セキュリティ検査、GitHub Pages への配信
+
+設計と表示仕様は [architecture.md](docs/architecture.md)、運用手順は
+[operations.md](docs/operations.md)、セキュリティ上の対策と制約は [threat-model.md](docs/threat-model.md)
+を参照してください。

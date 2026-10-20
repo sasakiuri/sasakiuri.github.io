@@ -6,10 +6,10 @@ const packageId = "SPDXRef-Package-static-export";
 export function createStaticSpdx({ created, manifest }) {
   assertIsoTimestamp(created);
   if (typeof manifest?.treeSha256 !== "string" || !/^[a-f\d]{64}$/u.test(manifest.treeSha256)) {
-    throw new TypeError("A sealed artifact manifest is required to generate SPDX evidence.");
+    throw new TypeError("A sealed artifact manifest is required to generate an SPDX SBOM.");
   }
   if (!Array.isArray(manifest.files) || manifest.files.length === 0) {
-    throw new TypeError("SPDX evidence requires at least one artifact file.");
+    throw new TypeError("The SPDX SBOM must contain at least one file.");
   }
 
   const files = manifest.files.map((file, index) => {

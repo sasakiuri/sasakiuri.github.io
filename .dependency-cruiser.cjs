@@ -2,7 +2,7 @@ module.exports = {
   forbidden: [
     {
       name: "no-circular-runtime-dependencies",
-      comment: "Runtime dependency cycles make modules harder to test and evolve.",
+      comment: "Runtime imports must not form cycles.",
       severity: "error",
       from: {},
       to: {
@@ -12,14 +12,14 @@ module.exports = {
     },
     {
       name: "no-components-to-app",
-      comment: "Reusable components must not depend on the Next.js routing layer.",
+      comment: "Components must not import from src/app.",
       severity: "error",
       from: { path: "(?:^|/)src/components/" },
       to: { path: "(?:^|/)src/app/" },
     },
     {
       name: "no-config-to-ui",
-      comment: "The site configuration must remain independent from presentation code.",
+      comment: "Site configuration must not import page or component code.",
       severity: "error",
       from: { path: "(?:^|/)src/config/" },
       to: { path: "(?:^|/)src/(app|components)/" },

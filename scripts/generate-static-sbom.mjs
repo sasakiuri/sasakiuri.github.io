@@ -12,7 +12,7 @@ const spdx = createStaticSpdx({ created, manifest });
 
 await mkdir(path.dirname(options.outputPath), { recursive: true });
 await writeFile(options.outputPath, `${JSON.stringify(spdx, null, 2)}\n`);
-process.stdout.write(`Wrote SPDX evidence for ${spdx.files.length} static files to ${options.outputPath}.\n`);
+process.stdout.write(`Wrote an SPDX SBOM for ${spdx.files.length} static files to ${options.outputPath}.\n`);
 
 function parseArguments(arguments_) {
   const values = new Map();

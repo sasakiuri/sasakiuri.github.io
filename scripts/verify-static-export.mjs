@@ -79,7 +79,7 @@ if (mode.kind === "verify") {
     expected,
     ...(mode.trustedSealSha256 === undefined ? {} : { trustedSealSha256: mode.trustedSealSha256 }),
   });
-  process.stdout.write(`Verified ${files.length} promoted files against seal ${sealSha256} and tree ${treeSha256}.\n`);
+  process.stdout.write(`Verified ${files.length} static files (seal: ${sealSha256}, tree: ${treeSha256}).\n`);
   process.exit(0);
 }
 

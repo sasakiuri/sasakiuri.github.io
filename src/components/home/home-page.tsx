@@ -12,7 +12,7 @@ export function HomePage() {
         <h1>{pageHeading}</h1>
         <p>
           <ExternalLink href={hero.sourceUrl}>
-            {/* biome-ignore lint/performance/noImgElement: A plain image preserves the requested browser-default rendering. */}
+            {/* biome-ignore lint/performance/noImgElement: Use a plain img element to keep the browser's default rendering. */}
             <img alt={hero.image.alt} height={hero.image.height} src={hero.image.src} width={hero.image.width} />
           </ExternalLink>
         </p>

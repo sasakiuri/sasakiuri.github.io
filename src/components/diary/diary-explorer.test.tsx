@@ -217,9 +217,7 @@ describe("DiaryExplorer", () => {
     render(<DiaryExplorer initialPosts={posts.slice(0, 2)} totalPosts={posts.length} years={years} />);
 
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
-        "検索データを読み込めませんでした。年別の日記は利用できます。",
-      ),
+      expect(screen.getByRole("status")).toHaveTextContent("検索データを読み込めませんでした。年別の日記は読めます。"),
     );
     expect(screen.getByRole("searchbox", { name: "検索" })).toBeDisabled();
     expect(screen.getAllByRole("article")).toHaveLength(2);
