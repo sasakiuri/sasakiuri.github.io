@@ -7,7 +7,7 @@ on:
     branches: [1.x]
   merge_group:
   repository_dispatch:
-    types: [diary-updated]
+    types: [diary-updated, dependabot-updated]
   workflow_dispatch:
 
 permissions:
@@ -60,7 +60,7 @@ jobs:
           pipx run --spec spdx-tools==0.8.5 pyspdxtools \
             -i reports/attestation/static-export.spdx.json
 
-      - name: Export the artifact seal
+      - name: Export artifact checksums
         id: artifact-seal
         run: |
           node <<'NODE'
@@ -208,7 +208,7 @@ jobs:
           name: static-export
           path: .
 
-      - name: Verify promoted artifact integrity
+      - name: Verify the downloaded static export
         run: pnpm artifact:verify --seal-sha "$TRUSTED_SEAL_SHA"
         env:
           TRUSTED_SEAL_SHA: ${{ needs.quality.outputs.seal-sha256 }}
@@ -261,7 +261,7 @@ jobs:
           name: static-export
           path: .
 
-      - name: Verify promoted artifact integrity
+      - name: Verify the downloaded static export
         run: pnpm artifact:verify --seal-sha "$TRUSTED_SEAL_SHA"
         env:
           TRUSTED_SEAL_SHA: ${{ needs.quality.outputs.seal-sha256 }}
@@ -337,7 +337,7 @@ jobs:
         env:
           TRUSTED_SEAL_SHA: ${{ needs.quality.outputs.seal-sha256 }}
 
-      - name: Create deterministic attestation subject
+      - name: Create a reproducible archive for attestation
         run: |
           mkdir -p reports/attestation
           tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner --format=posix \
@@ -345,7 +345,7 @@ jobs:
             -cf reports/attestation/site-export.tar -C out .
           gzip --no-name --force reports/attestation/site-export.tar
 
-      - name: Verify validated SPDX evidence integrity
+      - name: Verify the SPDX SBOM checksum
         run: |
           node <<'NODE'
           const crypto = require("node:crypto");
@@ -358,7 +358,7 @@ jobs:
             .createHash("sha256")
             .update(fs.readFileSync("reports/attestation/static-export.spdx.json"))
             .digest("hex");
-          if (actual !== expected) throw new TypeError("SPDX evidence changed after validation.");
+          if (actual !== expected) throw new TypeError("The SPDX SBOM changed after validation.");
           NODE
         env:
           TRUSTED_SBOM_SHA: ${{ needs.quality.outputs.sbom-sha256 }}
@@ -374,7 +374,7 @@ jobs:
           subject-path: reports/attestation/site-export.tar.gz
           sbom-path: reports/attestation/static-export.spdx.json
 
-      - name: Upload release evidence
+      - name: Upload the archive and SBOM
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-evidence
@@ -401,7 +401,7 @@ jobs:
         env:
           SITE_URL: ${{ steps.deployment.outputs.page_url }}
 
-      - name: Upload post-deployment evidence
+      - name: Upload deployment check results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

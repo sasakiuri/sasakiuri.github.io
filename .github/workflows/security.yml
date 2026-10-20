@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [1.x]
   merge_group:
+  repository_dispatch:
+    types: [dependabot-updated]
   schedule:
     - cron: "0 20 * * 0"
   workflow_dispatch:
@@ -111,7 +113,9 @@ jobs:
 
   licenses:
     name: Dependency licenses
-    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -144,7 +148,9 @@ jobs:
 
   sbom:
     name: SBOM and provenance
-    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
