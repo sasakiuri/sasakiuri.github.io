@@ -25,6 +25,7 @@ words:
   - anchore
   - apos
   - autodocs
+  - BiDi
   - Biome
   - bradlc
   - commitlint
@@ -99,6 +100,7 @@ words:
   - Turbopack
   - twimg
   - TypeScript
+  - Vite
   - Vitest
   - vercel
   - Wayback

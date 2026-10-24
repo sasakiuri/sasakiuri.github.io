@@ -12,18 +12,14 @@ if (packageManagerPath === undefined) {
 
 const exceptions = new Map([
   [
-    "GHSA-vfj7-8cjw-p6xm",
+    "GHSA-mrhx-c7xc-m3w5",
     {
-      // No patched release exists. These Stylelint paths only process repository globs.
+      // No patched Zod 3 release exists. Lighthouse uses our local Chromium and static export.
+      // Newer Chromium BiDi releases fail the publisher-trust policy; keep that policy enforced.
       expires: "2026-11-03",
-      moduleName: "braces",
-      pathSuffixes: [
-        ">stylelint>micromatch>braces",
-        ">stylelint>fast-glob>micromatch>braces",
-        ">stylelint>globby>micromatch>braces",
-        ">stylelint>globby>fast-glob>micromatch>braces",
-      ],
-      version: "3.0.3",
+      moduleName: "zod",
+      pathSuffixes: [">lighthouse>puppeteer-core>chromium-bidi>zod"],
+      version: "3.25.76",
     },
   ],
 ]);
