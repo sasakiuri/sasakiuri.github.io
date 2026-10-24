@@ -3,6 +3,9 @@ packages:
   - "tools/*"
 
 autoInstallPeers: true
+# Each update job may omit the tool workspace; matching installed patches remain mandatory.
+allowUnusedPatches: true
+sharedWorkspaceLockfile: false
 blockExoticSubdeps: true
 disallowWorkspaceCycles: true
 engineStrict: true
@@ -36,6 +39,8 @@ packageExtensions:
       typescript: ">=2.0.0 <7.0.0"
 
 overrides:
+  # Lighthouse uses CDP; omit the unused BiDi mapper and its bundled vulnerable Zod.
+  "puppeteer-core@25>chromium-bidi": "-"
   "typed-rest-client>qs": "6.16.0"
   "serve>compression": "1.8.2"
   # Replace the vulnerable Vite version reused by automatically installed peers.
@@ -46,3 +51,6 @@ allowBuilds:
   sharp: true
   simple-git-hooks: true
   unrs-resolver: true
+
+patchedDependencies:
+  "@stryker-mutator/vitest-runner@10.0.0": patches/@stryker-mutator__vitest-runner@10.0.0.patch

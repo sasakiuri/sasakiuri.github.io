@@ -43,6 +43,13 @@ describe("httpsUrlSchema", () => {
     expect(() => safeExternalHttpsUrlSchema.parse("https://user:secret@example.com/path")).toThrow();
   });
 
+  it.each(["https://user@example.com/", "https://:secret@example.com/"])(
+    "rejects external links with independent credentials: %s",
+    (value) => {
+      expect(() => safeExternalHttpsUrlSchema.parse(value)).toThrow(/credentials/u);
+    },
+  );
+
   it.each([
     "https://user@example.com/",
     "https://:secret@example.com/",

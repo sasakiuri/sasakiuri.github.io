@@ -3,6 +3,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    exclude-paths: ["tools/**"]
     commit-message:
       prefix: "build(deps)"
     schedule:
@@ -20,6 +21,34 @@ updates:
       development-dependencies:
         applies-to: version-updates
         dependency-type: development
+    # The analysis workspaces require TypeScript 5 compiler APIs.
+    # Keep patch/minor and security updates; review compiler major migrations together.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: npm
+    directories: ["/tools/architecture", "/tools/mutation"]
+    commit-message:
+      prefix: "build(deps)"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tokyo
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns: ["*"]
+      tool-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7

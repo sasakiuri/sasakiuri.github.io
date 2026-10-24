@@ -128,7 +128,9 @@ Worker のスコープは `/sasakiuri/`
 `tools/mutation` に TypeScript 5.9 のワークスペースを置いています。これらのツールが使う API と TypeScript
 7 の互換性を分けて扱うためです。
 
-動的に読み込む TypeScript の peer dependency は、pnpm の `packageExtensions` で指定します。
+動的に読み込む TypeScript の peer dependency は、pnpm の `packageExtensions`
+で指定します。ルートと各ツールのロックファイルを分け、Dependabot が TypeScript
+7 と5を別々に更新できるようにしています。取得時の検査は、共通の `pnpm-workspace.yaml` を使います。
 
 - Next.js、アプリケーション、テストの型検査には TypeScript 7 を使う。
 - 依存グラフの解析と Mutation Testing にだけ TypeScript 5.9 を使う。

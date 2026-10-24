@@ -9,6 +9,8 @@ node_modules/
 *.tsbuildinfo
 
 # Test output
+/.vitest/
+/.stryker-tmp/
 /coverage/
 /playwright-report/
 /reports/

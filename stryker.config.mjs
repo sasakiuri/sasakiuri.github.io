@@ -3,7 +3,7 @@ const config = {
   packageManager: "pnpm",
   testRunner: "vitest",
   plugins: ["@stryker-mutator/vitest-runner"],
-  reporters: ["progress", "clear-text", "html"],
+  reporters: ["progress", "clear-text", "html", "json"],
   mutate: ["src/components/external-link/external-link.tsx", "src/config/https-url-schema.ts"],
   thresholds: {
     break: 95,
@@ -12,7 +12,8 @@ const config = {
   },
   vitest: {
     configFile: "vitest.config.ts",
-    related: false,
+    // The mutation targets are imported directly by their unit and integration tests.
+    related: true,
   },
   ignorePatterns: [
     ".next",
@@ -25,7 +26,11 @@ const config = {
     "test-results",
     "tests/e2e",
   ],
-  tempDirName: "node_modules/.stryker-tmp",
+  // Vitest must transform sandbox modules so their native-module mocks apply.
+  tempDirName: ".stryker-tmp",
+  jsonReporter: {
+    fileName: "stryker/mutation.json",
+  },
   htmlReporter: {
     fileName: "stryker/index.html",
   },
