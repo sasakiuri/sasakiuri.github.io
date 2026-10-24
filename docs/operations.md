@@ -181,8 +181,9 @@ node scripts/merge-dependabot.mjs --dry-run
 `GITHUB_TOKEN` でマージした場合は通常の push ワークフローが起動しないため、`Verify and deploy` と `Security`
 を別途開始します。マージ後に開始要求が失敗した場合は、両方を `1.x` に対して手動実行します。
 
-開発用の `braces` 3.0.3 にある脆弱性 `GHSA-vfj7-8cjw-p6xm`
-は、修正版が未公開のため2026年11月3日まで監査の例外にしています。対象は Stylelint の特定の依存経路だけです。入力はリポジトリで管理する glob に限られ、本番配信には含まれません。期限までに修正版の有無を確認してください。
+`GHSA-mrhx-c7xc-m3w5` は、開発用の `lighthouse > puppeteer-core > chromium-bidi > zod` に限り、Zod
+3.25.76 を2026年11月3日まで監査の例外にしています。Zod 3 の修正版はなく、新しい Chromium
+BiDi は配布元の信頼度を検証する設定で拒否されます。Lighthouse が接続するのは、このリポジトリの静的サイトとローカルの Chromium だけです。本番用や別経路の Zod は例外に含みません。期限までに修正版と配布元の検証状況を確認してください。
 
 ## その他の定期作業
 

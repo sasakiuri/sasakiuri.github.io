@@ -10,13 +10,7 @@ import { afterEach, expect, it } from "vitest";
 
 const execute = promisify(execFile);
 const directories = [];
-const allowedPaths = [
-  ".>stylelint>micromatch>braces",
-  ".>stylelint>fast-glob>micromatch>braces",
-  ".>stylelint>globby>micromatch>braces",
-  ".>stylelint>globby>fast-glob>micromatch>braces",
-  ".>stylelint-config-standard>stylelint>micromatch>braces",
-];
+const allowedPaths = [".>lighthouse>puppeteer-core>chromium-bidi>zod"];
 
 afterEach(async () => {
   await Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
@@ -28,11 +22,11 @@ async function audit({ advisory = {}, finding = {}, now = "2026-10-20T00:00:00.0
   const report = {
     advisories: {
       1: {
-        github_advisory_id: "GHSA-vfj7-8cjw-p6xm",
-        module_name: "braces",
+        github_advisory_id: "GHSA-mrhx-c7xc-m3w5",
+        module_name: "zod",
         severity: "high",
-        title: "Nested brace patterns exhaust the call stack",
-        findings: [{ dev: true, version: "3.0.3", paths: allowedPaths, ...finding }],
+        title: "Zod collection validation exhausts memory",
+        findings: [{ dev: true, version: "3.25.76", paths: allowedPaths, ...finding }],
         ...advisory,
       },
     },
@@ -49,7 +43,7 @@ async function audit({ advisory = {}, finding = {}, now = "2026-10-20T00:00:00.0
 }
 
 it("accepts only the scoped development dependency before its deadline", async () => {
-  expect((await audit()).stdout).toContain("GHSA-vfj7-8cjw-p6xm until 2026-11-03");
+  expect((await audit()).stdout).toContain("GHSA-mrhx-c7xc-m3w5 until 2026-11-03");
   expect((await audit({ now: "2026-11-03T23:59:59.999Z" })).stdout).toContain("No unaccepted high");
 });
 
@@ -59,10 +53,12 @@ it("rejects the exception immediately after its deadline", async () => {
 
 it.each([
   { dev: false },
-  { version: "3.0.2" },
-  { paths: [".>application>micromatch>braces"] },
-  { paths: [".>other-stylelint>micromatch>braces"] },
-  { paths: [...allowedPaths, ".>application>micromatch>braces"] },
+  { version: "3.25.75" },
+  { version: "4.4.3" },
+  { paths: [".>zod"] },
+  { paths: [".>puppeteer-core>chromium-bidi>zod"] },
+  { paths: [".>other-lighthouse>puppeteer-core>chromium-bidi>zod"] },
+  { paths: [...allowedPaths, ".>application>zod"] },
   { paths: [] },
 ])("rejects an out-of-scope finding: %j", async (finding) => {
   await expect(audit({ finding })).rejects.toMatchObject({ code: 1 });
@@ -74,6 +70,16 @@ it.each([{ github_advisory_id: "GHSA-unrelated" }, { module_name: "another-packa
     await expect(audit({ advisory })).rejects.toMatchObject({ code: 1 });
   },
 );
+
+it.each([
+  { dev: false, version: "3.25.76", paths: allowedPaths },
+  { dev: true, version: "4.4.3", paths: allowedPaths },
+  { dev: true, version: "3.25.76", paths: [".>application>zod"] },
+])("rejects an advisory that also contains an out-of-scope finding: %j", async (finding) => {
+  await expect(
+    audit({ advisory: { findings: [{ dev: true, version: "3.25.76", paths: allowedPaths }, finding] } }),
+  ).rejects.toMatchObject({ code: 1 });
+});
 
 it("continues to reject unrelated critical advisories", async () => {
   await expect(

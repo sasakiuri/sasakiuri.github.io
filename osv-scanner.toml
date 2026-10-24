@@ -1,9 +1,4 @@
 [[IgnoredVulns]]
-id = "GHSA-w3rx-r6r6-pgpr"
-ignoreUntil = 2026-09-30
-reason = "Dev-only Storybook image metadata parser; no patched npm release exists. Inputs are repository-owned assets."
-
-[[IgnoredVulns]]
-id = "GHSA-5p2g-fcmc-qvqq"
-ignoreUntil = 2026-09-30
-reason = "Dev-only Storybook image metadata parser; no patched npm release exists. Inputs are repository-owned assets."
+id = "GHSA-mrhx-c7xc-m3w5"
+ignoreUntil = 2026-11-03
+reason = "Only dev-only zod 3.25.76 via lighthouse > puppeteer-core > chromium-bidi is accepted by the mandatory pnpm audit. Lighthouse uses our local Chromium and static export. No patched Zod 3 exists; newer Chromium BiDi releases fail publisher-trust checks. All other paths and versions remain blocked by scripts/audit-dependencies.mjs."
