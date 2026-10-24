@@ -26,6 +26,26 @@ const allowedBaseChanges = new Set([
   "docs/adr/0003-versioned-publication-contract.md",
 ]);
 const isSha = (value) => typeof value === "string" && /^[0-9a-f]{40}$/u.test(value);
+export const isDependabotAccount = (user) =>
+  user?.login === "dependabot[bot]" && user.id === 49699333 && user.type === "Bot";
+
+export async function hasTrustedDependabotCommits(request, pull) {
+  if (!Number.isSafeInteger(pull.commits) || pull.commits < 1 || pull.commits > 250) return false;
+  const pages = await request(`${apiRoot}/pulls/${pull.number}/commits?per_page=100`, { paginate: true });
+  const commits = pages.flat();
+  return (
+    commits.length === pull.commits &&
+    new Set(commits.map((commit) => commit?.sha)).size === commits.length &&
+    commits.at(-1)?.sha === pull.head.sha &&
+    commits.every(
+      (commit) =>
+        isSha(commit?.sha) &&
+        isDependabotAccount(commit.author) &&
+        commit.commit?.verification?.verified === true &&
+        commit.commit.verification.reason === "valid",
+    )
+  );
+}
 
 function allowedContentFiles(files) {
   return (
@@ -80,6 +100,7 @@ export function sameDependabotPull(current, previous) {
   return (
     isDependabotUpdate(current) &&
     current.number === previous.number &&
+    current.commits === previous.commits &&
     current.head.sha === previous.head.sha &&
     current.head.ref === previous.head.ref &&
     current.head.repo.id === previous.head.repo.id &&
@@ -94,7 +115,7 @@ export function isDependabotUpdate(pull) {
     pull.number > 0 &&
     pull.state === "open" &&
     pull.draft === false &&
-    pull.user?.login === "dependabot[bot]" &&
+    isDependabotAccount(pull.user) &&
     pull.base?.ref === "1.x" &&
     pull.base.repo?.full_name === repository &&
     Number.isSafeInteger(pull.base.repo.id) &&
