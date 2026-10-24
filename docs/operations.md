@@ -206,18 +206,35 @@ node scripts/retry-dependabot.mjs --dry-run
 node scripts/check-dependency-exceptions.mjs
 ```
 
-最初の2つは状態の確認だけを行います。マージの dry-run も、手動対応が必要な対象があれば終了コード1を返します。再試行の停止理由は概要に表示し、API エラー時は失敗します。期限確認は例外の期限まで7日以内、または失効済みなら失敗します。`Dependency maintenance`
+最初の2つは状態の確認だけを行います。マージの dry-run も、手動対応の必要な PR があると終了コード1を返します。再試行の停止理由は概要に表示し、API エラー時は失敗します。期限確認は例外の期限まで7日以内、または失効済みなら失敗します。`Dependency maintenance`
 の手動実行は既定で `dry_run: true` です。
 
 `GITHUB_TOKEN` でマージした場合は通常の push ワークフローが起動しないため、`Verify and deploy` と `Security`
 を別途開始します。マージ後に開始要求が失敗した場合は、両方を `1.x` に対して手動実行します。
 
-`GHSA-mrhx-c7xc-m3w5` は、開発用の `lighthouse > puppeteer-core > chromium-bidi > zod` に限り、Zod
-3.25.76 を2026年11月3日まで監査の例外にしています。Zod 3 の修正版はなく、新しい Chromium
-BiDi は配布元の信頼度を検証する設定で拒否されます。Lighthouse が接続するのは、このリポジトリの静的サイトとローカルの Chromium だけです。本番用や別経路の Zod は例外に含みません。期限までに修正版と配布元の検証状況を確認してください。
+Lighthouse は CDP でローカルの Chromium に接続します。使わない WebDriver BiDi の依存は、pnpm の
+`puppeteer-core@25>chromium-bidi` の override で除外しています。これにより、Chromium BiDi が持つ Zod
+3 と、配布物に組み込まれた古い Zod を取得しません。`GHSA-mrhx-c7xc-m3w5` の監査・OSV・Dependency
+Review の例外は撤廃しました。公開から24時間の待機、配布元の信頼度、peer dependency の検査は引き続き必須です。
 
-Zod 4 の強制指定も行いません。現在の Chromium BiDi は Zod 3 の `error.errors` を参照し、Zod
-4 では入力エラー時の処理が壊れるためです。期限確認は毎朝6:11（日本時間）に動き、期限の7日前から失敗を通知します。修正版が出ない場合は人の判断で対応を決めます。期限の自動延長や、監査・取得時の信頼性検査の無効化は行いません。
+依存監査は全ワークスペースを確認し、Chromium BiDi が再び入った場合も失敗します。
+
+Lighthouse や Puppeteer の更新時は、CDP 接続で性能検査が完走することを確認します。Puppeteer 26 以降への更新や WebDriver
+BiDi の導入時は、この除外を見直してください。
+
+Vitest と `@vitest/*`、`size-limit` と `@size-limit/file` は同じバージョンへまとめて更新します。個別更新で peer
+dependency の不整合が起きた場合も、検査を無効にせず、関連するマニフェストとロックファイルを同時に更新します。
+
+解析・Mutation Testing のワークスペースは TypeScript
+5 の API を必要とするため、Dependabot による TypeScript の major 更新は止めています。ルートの TypeScript
+7 も含め、minor・patch 更新は対象です。major 更新は、ツールの互換性を確認してから行います。
+
+Stryker 10.0.0 には、Vitest 5 のテスト名とファイル読み込みエラーに対応する
+[公式修正](https://github.com/stryker-mutator/stryker-js/pull/6214)をパッチとして適用しています。修正版へ更新し、Mutation
+Testing の実行結果を確認したら、このパッチを削除します。ツールを含まない Dependabot の更新でもインストールできるよう、未使用パッチは許可しています。対象バージョンをインストールする際のパッチ適用失敗はエラーになります。
+
+Mutation Testing の作業ディレクトリは、モックを適用できるよう `node_modules`
+の外に置きます。対象コードを直接読み込むテストで変異を検査し、全テストの実行とカバレッジは別途確認します。テスト未実行の変異が「生存」と判定された場合や、実行結果の JSON が出力されない場合も失敗します。
 
 ## その他の定期作業
 

@@ -44,35 +44,32 @@ it("passes when no exceptions remain", () => {
 });
 
 it("checks the same policy used by the dependency audit", () => {
-  expect(checkDependencyExceptionDeadlines({ now: Date.parse("2026-11-04T00:00:00Z") })).toEqual([
-    { advisory: "GHSA-mrhx-c7xc-m3w5", expires: "2026-11-03", status: "expired" },
-  ]);
+  expect(checkDependencyExceptionDeadlines({ now: Date.parse("2026-11-04T00:00:00Z") })).toEqual([]);
 });
 
-it.each([
-  ["2026-10-24T00:00:00Z", "accepted", 0],
-  ["2026-10-28T00:00:00Z", "due", 1],
-  ["2026-11-04T00:00:00Z", "expired", 1],
-])("reports the policy to Actions and exits appropriately at %s", async (date, status, code) => {
-  const directory = await mkdtemp(path.join(tmpdir(), "exception-deadline-test-"));
-  try {
-    const clock = path.join(directory, "clock.mjs");
-    const summary = path.join(directory, "summary.md");
-    await writeFile(clock, `Date.now = () => ${Date.parse(date)};`);
-    let result;
+it.each(["2026-10-24T00:00:00Z", "2026-10-28T00:00:00Z", "2026-11-04T00:00:00Z"])(
+  "reports no active exceptions to Actions at %s",
+  async (date) => {
+    const directory = await mkdtemp(path.join(tmpdir(), "exception-deadline-test-"));
     try {
-      result = await execute(
-        process.execPath,
-        ["--import", clock, new URL("./check-dependency-exceptions.mjs", import.meta.url).pathname],
-        { env: { ...process.env, GITHUB_STEP_SUMMARY: summary } },
-      );
-    } catch (error) {
-      result = error;
+      const clock = path.join(directory, "clock.mjs");
+      const summary = path.join(directory, "summary.md");
+      await writeFile(clock, `Date.now = () => ${Date.parse(date)};`);
+      let result;
+      try {
+        result = await execute(
+          process.execPath,
+          ["--import", clock, new URL("./check-dependency-exceptions.mjs", import.meta.url).pathname],
+          { env: { ...process.env, GITHUB_STEP_SUMMARY: summary } },
+        );
+      } catch (error) {
+        result = error;
+      }
+      expect(result.code ?? 0).toBe(0);
+      expect(JSON.parse(result.stdout).exceptions).toEqual([]);
+      expect(await readFile(summary, "utf8")).toContain("## Dependency exceptions");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
     }
-    expect(result.code ?? 0).toBe(code);
-    expect(JSON.parse(result.stdout).exceptions[0].status).toBe(status);
-    expect(await readFile(summary, "utf8")).toContain(`GHSA-mrhx-c7xc-m3w5: ${status}; expires 2026-11-03`);
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
+  },
+);

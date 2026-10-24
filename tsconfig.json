@@ -40,5 +40,5 @@
     "verbatimModuleSyntax": true
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx", "**/*.mts", ".next/dev/types/**/*.ts"],
-  "exclude": ["node_modules", "out"]
+  "exclude": ["node_modules", "out", ".stryker-tmp"]
 }

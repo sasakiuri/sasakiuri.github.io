@@ -48,6 +48,37 @@ describe("siteConfig", () => {
   });
 
   it.each([
+    {
+      purpose: "origin",
+      mutate: (candidate: MutableSiteContract) => (candidate.origin = "https://slithy.net/path/"),
+      issuePath: ["origin"],
+      message: /origins must not contain.*path/u,
+    },
+    {
+      purpose: "canonical directory",
+      mutate: (candidate: MutableSiteContract) => (candidate.routes.root.url = "https://slithy.net/file"),
+      issuePath: ["routes", "root", "url"],
+      message: /normalized HTTPS directory/u,
+    },
+    {
+      purpose: "external link",
+      mutate: (candidate: MutableSiteContract) =>
+        (requiredItem(candidate.routes.personal.socials, 0).href = "https://user:secret@example.com/"),
+      issuePath: ["routes", "personal", "socials", 0, "href"],
+      message: /must not contain credentials/u,
+    },
+  ])("identifies the invalid $purpose field and explains its requirement", ({ mutate, issuePath, message }) => {
+    const candidate = structuredClone(siteContract) as MutableSiteContract;
+    mutate(candidate);
+    const result = siteContractSchema.safeParse(candidate);
+    expect(result.success).toBe(false);
+    if (result.success) throw new TypeError("Invalid configuration was accepted.");
+    expect(result.error.issues).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: issuePath, message: expect.stringMatching(message) })]),
+    );
+  });
+
+  it.each([
     [
       "a mismatched Service Worker scope",
       (candidate: MutableSiteContract) => (candidate.pwa.serviceWorker.scope = "/other/"),

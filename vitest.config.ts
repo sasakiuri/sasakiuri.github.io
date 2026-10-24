@@ -26,7 +26,7 @@ export default defineConfig({
       },
     },
     environment: "jsdom",
-    exclude: [...configDefaults.exclude, "tests/e2e/**"],
+    exclude: [...configDefaults.exclude, ".stryker-tmp/**", "tests/e2e/**"],
     passWithNoTests: false,
     reporters: CI ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }]] : ["default"],
     restoreMocks: true,

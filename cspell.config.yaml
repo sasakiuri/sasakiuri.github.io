@@ -8,6 +8,7 @@ ignorePaths:
   - coverage/**
   - "**/node_modules/**"
   - out/**
+  - patches/@stryker-mutator__vitest-runner@10.0.0.patch
   - playwright-report/**
   - pnpm-lock.yaml
   - public/**/*.{ico,webp}
