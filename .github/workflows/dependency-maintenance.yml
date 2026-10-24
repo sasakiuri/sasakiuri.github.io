@@ -1,0 +1,76 @@
+name: Dependency maintenance
+
+on:
+  schedule:
+    - cron: "37 * * * *"
+    # Check exception deadlines once daily at 06:11 JST.
+    - cron: "11 21 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Inspect pending Dependabot checks without retrying them
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  retry:
+    name: Retry failed Dependabot checks after the release wait
+    if: >-
+      github.repository == 'sasakiuri/sasakiuri.github.io' && (github.event_name == 'workflow_dispatch' ||
+      github.event.schedule == '37 * * * *')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: dependabot-retry
+      cancel-in-progress: false
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check out maintenance from 1.x
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: 1.x
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+
+      - name: Recheck current PRs and retry eligible workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = 'true' ]; then
+            node scripts/retry-dependabot.mjs --dry-run
+          else
+            node scripts/retry-dependabot.mjs
+          fi
+
+  exceptions:
+    name: Check upcoming dependency exception deadlines
+    if: >-
+      github.repository == 'sasakiuri/sasakiuri.github.io' && (github.event_name == 'workflow_dispatch' ||
+      github.event.schedule == '11 21 * * *')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out policy from 1.x
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: 1.x
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+
+      - name: Report exceptions expiring within seven days
+        run: node scripts/check-dependency-exceptions.mjs

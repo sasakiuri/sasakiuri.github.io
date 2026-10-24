@@ -11,6 +11,7 @@ const pull = {
   number: 42,
   state: "open",
   draft: false,
+  mergeable: true,
   user: { login: "dependabot[bot]" },
   base: { ref: "1.x", repo: { id: 1234, full_name: repository } },
   head: { ref: "dependabot/npm_and_yarn/next", sha, repo: { id: 1234, full_name: repository } },
@@ -33,6 +34,9 @@ function setup({
   mergeResult = { merged: true, sha },
 } = {}) {
   const request = vi.fn(async (route, options = {}) => {
+    if (route.endsWith("/git/ref/heads/1.x"))
+      return { ref: "refs/heads/1.x", object: { type: "commit", sha: "b".repeat(40) } };
+    if (route.includes("/compare/")) return { merge_base_commit: { sha: "b".repeat(40) } };
     if (route.includes("/pulls?")) return candidates;
     if (route.endsWith(`/pulls/${pull.number}`)) return currentPull;
     if (route.includes("/actions/runs?")) {
@@ -147,5 +151,41 @@ it("propagates API errors without merging or deploying", async () => {
   const { request, mutations } = setup();
   request.mockRejectedValueOnce(new Error("GitHub unavailable"));
   await expect(mergeDependabotUpdates(request)).rejects.toThrow("GitHub unavailable");
+  expect(mutations()).toEqual([]);
+});
+
+it.each([false, null, undefined])("requires computed mergeability before merging: %s", async (mergeable) => {
+  const { request, mutations } = setup({ currentPull: { ...pull, mergeable } });
+  expect((await mergeDependabotUpdates(request)).waiting).toEqual([42]);
+  expect(mutations()).toEqual([]);
+});
+
+it("does not trust mutable run or PR base metadata to authorize a stale base", async () => {
+  const { request, mutations } = setup();
+  const original = request.getMockImplementation();
+  request.mockImplementation((route, options) =>
+    route.includes("/compare/") ? { merge_base_commit: { sha: "c".repeat(40) } } : original(route, options),
+  );
+  expect((await mergeDependabotUpdates(request)).waiting).toEqual([42]);
+  expect(mutations()).toEqual([]);
+});
+
+it.each(["pull", "base", "attempt"])("rechecks %s state immediately before merging", async (change) => {
+  const { request, mutations } = setup();
+  const original = request.getMockImplementation();
+  let pullReads = 0;
+  let refReads = 0;
+  let runReads = 0;
+  request.mockImplementation((route, options) => {
+    if (route.endsWith("/pulls/42") && pullReads++ > 0 && change === "pull") return { ...pull, state: "closed" };
+    if (route.endsWith("/git/ref/heads/1.x") && refReads++ > 0 && change === "base") {
+      return { ref: "refs/heads/1.x", object: { type: "commit", sha: "d".repeat(40) } };
+    }
+    if (route.includes("/actions/runs?") && runReads++ > 0 && change === "attempt") {
+      return [{ workflow_runs: [{ ...runs[0], status: "queued", run_attempt: 2 }, ...runs.slice(1)] }];
+    }
+    return original(route, options);
+  });
+  expect((await mergeDependabotUpdates(request)).waiting).toEqual([42]);
   expect(mutations()).toEqual([]);
 });
