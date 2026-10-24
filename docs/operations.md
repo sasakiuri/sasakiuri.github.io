@@ -166,6 +166,8 @@ bytesを超える年は、その年だけを月別ページに分け、上限は
 Dependabot が npm、GitHub Actions、Dev Container の更新 PR を作ります。このリポジトリ内で Dependabot が作成した、`1.x`
 向けの PR だけを自動マージします。
 
+PR 内の全コミットは、GitHub で署名を検証済みの Dependabot のコミットであることを確認します。最新の検査の起動者も Dependabot に限ります。保守担当者による同じ実行の再試行では、元の起動者を確認します。ブランチ名と PR 作成者だけで信頼せず、別の人による変更があれば手動レビューに回します。
+
 PR の最新コミットに対する `Verify and deploy`、`Security`、`PR title`
 の最新実行がすべて成功したら、rebase でマージして配信の検査を開始します。いずれかが未実行、実行中、失敗の場合はマージしません。
 
@@ -185,13 +187,18 @@ PR の最新コミットに対する `Verify and deploy`、`Security`、`PR titl
 
 待機中と停止中の PR は Actions の実行結果の概要で確認できます。1つの API 要求が失敗しても残りの PR を確認し、最後にワークフローを失敗させます。
 
+検査済みの PR でも、その後のベース変更で rebase が必要になった場合は、マージ処理を失敗させて理由を表示します。ほかの更新を先にマージした際にも起こり得るため、全検査が成功している PR の停止理由も確認してください。
+
 - `merge conflict`: 競合を解消するか、Dependabot に PR を作り直させます。
 - `base changed; Dependabot rebase required`: Dependabot に rebase を依頼し、新しいコミットで全検査を通します。
 - `attempt limit reached`、`manual action required`、30日以上前の実行: 失敗したジョブを確認し、必要な修正後に新しい検査を開始します。
 - `required workflow missing`: PR のイベントや競合を確認し、全検査が動く状態に戻します。
 - `GitHub ... failed`: 権限と GitHub の稼働状況を確認します。次回の確認は API から状態を取り直します。
+- `commit provenance requires manual review`、`workflow actor requires manual review`: コミットの作者・署名や検査の起動者を確認し、手動でレビューします。
 
 npm の脆弱性修正は本番用と開発用をまとめます。この設定で既存の個別 PR がすべてまとまるとは限りません。個別 PR 同士が別の脆弱性を理由に失敗している場合は、古い PR の整理とまとめ直しが必要です。監査の基準を緩めて通すことはしません。
+
+再試行の対象は取得制限による失敗に限りません。テストの不具合も最大2回再試行するため、失敗したジョブの内容は確認してください。PR のログを解析して再試行の可否を決めることはしません。
 
 ```sh
 node scripts/merge-dependabot.mjs --dry-run

@@ -17,8 +17,9 @@ const pull = {
   number: 42,
   state: "open",
   draft: false,
+  commits: 1,
   mergeable: true,
-  user: { login: "dependabot[bot]" },
+  user: { login: "dependabot[bot]", id: 49699333, type: "Bot" },
   base: { ref: "1.x", repo: { id: 1234, full_name: repository } },
   head: { ref: "dependabot/npm_and_yarn/security-updates", sha, repo: { id: 1234, full_name: repository } },
 };
@@ -26,6 +27,7 @@ const runs = requiredWorkflows.map((workflow, index) => ({
   id: 100 + index,
   path: workflow,
   event: "pull_request",
+  actor: pull.user,
   head_sha: sha,
   head_repository: { full_name: repository },
   pull_requests: [{ number: pull.number, base: pull.base, head: pull.head }],
@@ -51,6 +53,8 @@ function setup({
     if (route.endsWith("/git/ref/heads/1.x"))
       return { ref: "refs/heads/1.x", object: { type: "commit", sha: "b".repeat(40) } };
     if (route.includes("/compare/")) return { merge_base_commit: { sha: "b".repeat(40) } };
+    if (route.includes("/commits?"))
+      return [[{ sha, author: pull.user, commit: { verification: { verified: true, reason: "valid" } } }]];
     if (route.includes("/pulls?")) return [[], candidates];
     if (route.endsWith("/pulls/42")) return pullReads++ === 0 ? currentPull : beforeRetryPull;
     if (route.includes("/actions/runs?")) {
@@ -150,6 +154,16 @@ it("waits while GitHub computes mergeability", async () => {
   const { request, mutations } = setup({ currentPull: { ...pull, mergeable: null } });
   expect((await retryDependabotChecks(request, { now })).waiting).toEqual([
     { pull: 42, reason: "mergeability not computed" },
+  ]);
+  expect(mutations()).toEqual([]);
+});
+
+it("does not retry a new human-triggered run or fall back to an older bot run", async () => {
+  const { request, mutations } = setup({
+    workflowRuns: [...runs, { ...runs[0], id: 200, actor: { login: "another-user" } }],
+  });
+  expect((await retryDependabotChecks(request, { now })).blocked).toEqual([
+    { ...entry, run: 200, reason: "workflow actor requires manual review" },
   ]);
   expect(mutations()).toEqual([]);
 });

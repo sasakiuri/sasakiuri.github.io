@@ -2,7 +2,7 @@
 
 import { expect, it, vi } from "vitest";
 
-import { apiRoot, checkBaseChanges, liveBaseSha } from "./dependabot.mjs";
+import { apiRoot, checkBaseChanges, hasTrustedDependabotCommits, liveBaseSha } from "./dependabot.mjs";
 
 const head = "a".repeat(40);
 const base = "b".repeat(40);
@@ -123,4 +123,39 @@ it("rejects a truncated individual commit even when the aggregate looks harmless
       : original(route),
   );
   expect((await checkBaseChanges(request, pull)).allowed).toBe(false);
+});
+
+const bot = { login: "dependabot[bot]", id: 49699333, type: "Bot" };
+const signed = { sha: head, author: bot, commit: { verification: { verified: true, reason: "valid" } } };
+const commitPull = { number: 42, head: { sha: head }, commits: 1 };
+
+it("checks every paginated commit and binds the last commit to the current head", async () => {
+  const request = vi.fn(async () => [[{ ...signed, sha: old }], [signed]]);
+  expect(await hasTrustedDependabotCommits(request, { ...commitPull, commits: 2 })).toBe(true);
+  expect(request).toHaveBeenCalledWith(`${apiRoot}/pulls/42/commits?per_page=100`, { paginate: true });
+});
+
+it.each([
+  { author: { ...bot, id: 1234 } },
+  { author: { ...bot, type: "User" } },
+  { author: { ...bot, login: "another-user" } },
+  { author: null },
+  { commit: { verification: { verified: false, reason: "unsigned" } } },
+  { commit: { verification: { verified: true, reason: "unknown_key" } } },
+  { sha: old },
+])("requires a verified Dependabot author for every commit: %j", async (change) => {
+  expect(await hasTrustedDependabotCommits(async () => [[{ ...signed, ...change }]], commitPull)).toBe(false);
+});
+
+it.each([undefined, 0, 251])("rejects incomplete/unbounded PR commit counts: %s", async (commits) => {
+  const request = vi.fn();
+  expect(await hasTrustedDependabotCommits(request, { ...commitPull, commits })).toBe(false);
+  expect(request).not.toHaveBeenCalled();
+});
+
+it.each([
+  { commits: [], count: 1 },
+  { commits: [signed, signed], count: 2 },
+])("rejects missing or duplicate commit lists: $count", async ({ commits, count }) => {
+  expect(await hasTrustedDependabotCommits(async () => [commits], { ...commitPull, commits: count })).toBe(false);
 });

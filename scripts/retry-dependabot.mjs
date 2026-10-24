@@ -6,6 +6,8 @@ import { parseArgs } from "node:util";
 import {
   apiRoot,
   checkBaseChanges,
+  hasTrustedDependabotCommits,
+  isDependabotAccount,
   isDependabotUpdate,
   isRunForPullRequest,
   latestDependabotRuns,
@@ -20,6 +22,9 @@ const maximumRunAge = 30 * 24 * 60 * 60 * 1000;
 const maximumAttempts = 3;
 
 function retryState(run, now) {
+  // Select the latest associated run first, including human-triggered events.
+  // Original actors persist on reruns; triggering_actor may be a maintainer.
+  if (run !== undefined && !isDependabotAccount(run.actor)) return "workflow actor requires manual review";
   if (run === undefined || run.status !== "completed") return "workflow not completed";
   if (run.conclusion === "success") return "passed";
   if (run.conclusion !== "failure" && run.conclusion !== "timed_out") return "manual action required";
@@ -55,6 +60,10 @@ export async function retryDependabotChecks(request, { dryRun = false, now = Dat
       }
       if (pull.mergeable !== true) {
         summary.waiting.push({ pull: pull.number, reason: "mergeability not computed" });
+        continue;
+      }
+      if (!(await hasTrustedDependabotCommits(request, pull))) {
+        summary.blocked.push({ pull: pull.number, reason: "commit provenance requires manual review" });
         continue;
       }
       const runs = await latestDependabotRuns(request, pull);
@@ -108,7 +117,11 @@ export async function retryDependabotChecks(request, { dryRun = false, now = Dat
           continue;
         }
         const finalPull = await request(`${apiRoot}/pulls/${pull.number}`);
-        if (!sameDependabotPull(finalPull, pull) || (await liveBaseSha(request)) !== base.sha) {
+        if (
+          !sameDependabotPull(finalPull, pull) ||
+          !(await hasTrustedDependabotCommits(request, finalPull)) ||
+          (await liveBaseSha(request)) !== base.sha
+        ) {
           summary.waiting.push({ ...entry, reason: "pull request or base changed" });
           continue;
         }
