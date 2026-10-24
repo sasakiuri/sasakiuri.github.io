@@ -166,7 +166,7 @@ bytesを超える年は、その年だけを月別ページに分け、上限は
 Dependabot が npm、GitHub Actions、Dev Container の更新 PR を作ります。このリポジトリ内で Dependabot が作成した、`1.x`
 向けの PR だけを自動マージします。
 
-PR 内の全コミットは、GitHub で署名を検証済みの Dependabot のコミットであることを確認します。最新の検査の起動者も Dependabot に限ります。保守担当者による同じ実行の再試行では、元の起動者を確認します。ブランチ名と PR 作成者だけで信頼せず、別の人による変更があれば手動レビューに回します。
+PR 内の全コミットについて、作者情報が Dependabot と一致し、GitHub の署名検証に成功しているかを確認します。作者情報だけでは実行主体を証明できないため、最新の検査の元の起動者も Dependabot に限ります。保守担当者による同じ実行の再試行では、元の起動者を確認します。ブランチ名と PR 作成者だけで信頼せず、別の人による変更があれば手動レビューに回します。
 
 PR の最新コミットに対する `Verify and deploy`、`Security`、`PR title`
 の最新実行がすべて成功したら、rebase でマージして配信の検査を開始します。いずれかが未実行、実行中、失敗の場合はマージしません。
@@ -206,7 +206,7 @@ node scripts/retry-dependabot.mjs --dry-run
 node scripts/check-dependency-exceptions.mjs
 ```
 
-最初の2つは状態の確認だけを行います。期限確認は例外の期限まで7日以内、または失効済みなら失敗します。`Dependency maintenance`
+最初の2つは状態の確認だけを行います。マージの dry-run も、手動対応が必要な対象があれば終了コード1を返します。再試行の停止理由は概要に表示し、API エラー時は失敗します。期限確認は例外の期限まで7日以内、または失効済みなら失敗します。`Dependency maintenance`
 の手動実行は既定で `dry_run: true` です。
 
 `GITHUB_TOKEN` でマージした場合は通常の push ワークフローが起動しないため、`Verify and deploy` と `Security`
