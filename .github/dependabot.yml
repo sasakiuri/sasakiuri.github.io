@@ -11,9 +11,14 @@ updates:
       time: "09:00"
       timezone: Asia/Tokyo
     groups:
+      security-updates:
+        applies-to: security-updates
+        patterns: ["*"]
       production-dependencies:
+        applies-to: version-updates
         dependency-type: production
       development-dependencies:
+        applies-to: version-updates
         dependency-type: development
     open-pull-requests-limit: 5
     cooldown:

@@ -82,7 +82,7 @@ Tools で検証します。検証後の SBOM の SHA-256 もジョブ出力で�
 すべての検査が成功したら、同じファイルから再現可能な tar.gz を作ります。SLSA
 provenance と SBOM の attestation を付け、GitHub Pages へ配信します。
 
-`release-evidence` には tar.gz、ファイル一覧と検証用ハッシュ、SPDX
+`release-evidence-<実行回数>` には tar.gz、ファイル一覧と検証用ハッシュ、SPDX
 SBOM を90日間保存します。次のコマンドで、tar.gz がこのリポジトリの GitHub Actions で生成されたことを確認できます。
 
 ```sh
@@ -169,14 +169,38 @@ Dependabot が npm、GitHub Actions、Dev Container の更新 PR を作ります
 PR の最新コミットに対する `Verify and deploy`、`Security`、`PR title`
 の最新実行がすべて成功したら、rebase でマージして配信の検査を開始します。いずれかが未実行、実行中、失敗の場合はマージしません。
 
-`Merge Dependabot updates` は各検査の成功後に動きます。手動実行でも既存の更新 PR を確認できます。更新 PR のタイトルは
+`Merge Dependabot updates`
+は各検査の成功後と毎時53分に動きます。GitHub の混雑により開始が遅れることもあります。手動実行でも既存の更新 PR を確認できます。更新 PR のタイトルは
 `build(deps):` に統一します。
+
+マージと再試行の前には、実際の `1.x`
+の先頭と PR の共通祖先を確認します。祖先からの差分と各コミットが、日記データと許可した Markdown 文書だけなら処理を続けます。コード、依存関係、ワークフローの変更や、その後の取り消しがあれば Dependabot の rebase が必要です。30コミットを超える履歴、不完全な応答、300ファイル以上の差分も停止します。PR や実行結果の付随情報にあるベース SHA は、過去の検証対象を示す証拠には使いません。
+
+この確認は日記や文書の変更を許す運用上の条件であり、検証時と同一のファイルを保証するものではありません。操作の直前にも PR、最新の検査、`1.x`
+を確認しますが、GitHub のマージ API ではベース SHA を固定できません。確認直後の変更はマージ後の CI でも検査します。
+
+`Dependency maintenance`
+は毎時37分に失敗した検査を確認します。公開直後のパッケージが24時間の取得制限で止まった場合に備え、最後の失敗から26時間待ってワークフロー全体を再実行します。初回を含めて最大3回、開始から30日未満の実行が対象です。成果物の名前には実行回数を付け、ビルドジョブの出力を使って後続ジョブへ渡します。保守処理は
+`1.x` のスクリプトだけを使い、PR のコードや成果物を実行しません。
+
+待機中と停止中の PR は Actions の実行結果の概要で確認できます。1つの API 要求が失敗しても残りの PR を確認し、最後にワークフローを失敗させます。
+
+- `merge conflict`: 競合を解消するか、Dependabot に PR を作り直させます。
+- `base changed; Dependabot rebase required`: Dependabot に rebase を依頼し、新しいコミットで全検査を通します。
+- `attempt limit reached`、`manual action required`、30日以上前の実行: 失敗したジョブを確認し、必要な修正後に新しい検査を開始します。
+- `required workflow missing`: PR のイベントや競合を確認し、全検査が動く状態に戻します。
+- `GitHub ... failed`: 権限と GitHub の稼働状況を確認します。次回の確認は API から状態を取り直します。
+
+npm の脆弱性修正は本番用と開発用をまとめます。この設定で既存の個別 PR がすべてまとまるとは限りません。個別 PR 同士が別の脆弱性を理由に失敗している場合は、古い PR の整理とまとめ直しが必要です。監査の基準を緩めて通すことはしません。
 
 ```sh
 node scripts/merge-dependabot.mjs --dry-run
+node scripts/retry-dependabot.mjs --dry-run
+node scripts/check-dependency-exceptions.mjs
 ```
 
-このコマンドは PR の状態を表示するだけで、マージや配信は行いません。
+最初の2つは状態の確認だけを行います。期限確認は例外の期限まで7日以内、または失効済みなら失敗します。`Dependency maintenance`
+の手動実行は既定で `dry_run: true` です。
 
 `GITHUB_TOKEN` でマージした場合は通常の push ワークフローが起動しないため、`Verify and deploy` と `Security`
 を別途開始します。マージ後に開始要求が失敗した場合は、両方を `1.x` に対して手動実行します。
@@ -184,6 +208,9 @@ node scripts/merge-dependabot.mjs --dry-run
 `GHSA-mrhx-c7xc-m3w5` は、開発用の `lighthouse > puppeteer-core > chromium-bidi > zod` に限り、Zod
 3.25.76 を2026年11月3日まで監査の例外にしています。Zod 3 の修正版はなく、新しい Chromium
 BiDi は配布元の信頼度を検証する設定で拒否されます。Lighthouse が接続するのは、このリポジトリの静的サイトとローカルの Chromium だけです。本番用や別経路の Zod は例外に含みません。期限までに修正版と配布元の検証状況を確認してください。
+
+Zod 4 の強制指定も行いません。現在の Chromium BiDi は Zod 3 の `error.errors` を参照し、Zod
+4 では入力エラー時の処理が壊れるためです。期限確認は毎朝6:11（日本時間）に動き、期限の7日前から失敗を通知します。修正版が出ない場合は人の判断で対応を決めます。期限の自動延長や、監査・取得時の信頼性検査の無効化は行いません。
 
 ## その他の定期作業
 

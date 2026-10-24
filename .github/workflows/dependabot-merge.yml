@@ -6,6 +6,9 @@ on: # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows: [Verify and deploy, Security, PR title]
     types: [completed]
+  # Reconcile completed checks even if a completion event was missed.
+  schedule:
+    - cron: "53 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +23,8 @@ jobs:
     name: Merge verified dependency updates
     if: >-
       github.repository == 'sasakiuri/sasakiuri.github.io' && (github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'))
+      github.event_name == 'schedule' || (github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

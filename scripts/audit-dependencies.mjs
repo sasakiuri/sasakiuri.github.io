@@ -3,26 +3,14 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import { dependencyAuditExceptions, dependencyExceptionDeadline } from "./lib/dependency-audit-policy.mjs";
+
 const execute = promisify(execFile);
 const packageManagerPath = process.env.npm_execpath;
 
 if (packageManagerPath === undefined) {
   throw new Error("Run this audit through the package manager script.");
 }
-
-const exceptions = new Map([
-  [
-    "GHSA-mrhx-c7xc-m3w5",
-    {
-      // No patched Zod 3 release exists. Lighthouse uses our local Chromium and static export.
-      // Newer Chromium BiDi releases fail the publisher-trust policy; keep that policy enforced.
-      expires: "2026-11-03",
-      moduleName: "zod",
-      pathSuffixes: [">lighthouse>puppeteer-core>chromium-bidi>zod"],
-      version: "3.25.76",
-    },
-  ],
-]);
 
 let output;
 try {
@@ -45,7 +33,7 @@ for (const advisory of Object.values(report.advisories ?? {})) {
     continue;
   }
 
-  const exception = exceptions.get(advisory.github_advisory_id);
+  const exception = dependencyAuditExceptions.get(advisory.github_advisory_id);
   if (exception !== undefined && matchesException(advisory, exception)) {
     accepted.push(`${advisory.github_advisory_id} until ${exception.expires}`);
   } else {
@@ -65,8 +53,8 @@ if (rejected.length > 0) {
 }
 
 function matchesException(advisory, exception) {
-  const expiresAt = Date.parse(`${exception.expires}T23:59:59.999Z`);
-  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt || advisory.module_name !== exception.moduleName) {
+  const expiresAt = dependencyExceptionDeadline(exception.expires);
+  if (Date.now() > expiresAt || advisory.module_name !== exception.moduleName) {
     return false;
   }
 
